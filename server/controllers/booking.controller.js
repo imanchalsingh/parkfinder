@@ -23,6 +23,40 @@ export const getMyBookings = async (req, res) => {
     });
   }
 };
+
+import { generateBookingReceiptPDF } from "../utils/pdfGenerator.js";
+import User from "../models/User.js";
+
+// Download PDF receipt
+export const downloadReceipt = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const userId = req.user._id;
+
+    const booking = await Booking.findById(bookingId).populate("parkingId");
+    if (!booking) {
+      return res.status(404).json({ success: false, message: "Booking not found" });
+    }
+
+    // Restrict receipt generation so users can only access their own
+    if (booking.userId.toString() !== userId.toString() && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Not authorized to download this receipt" });
+    }
+
+    const user = await User.findById(booking.userId);
+
+    // Set headers for PDF download
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `attachment; filename=Receipt_${booking._id.toString().substring(0, 8)}.pdf`);
+
+    await generateBookingReceiptPDF(booking, user || {}, res);
+  } catch (error) {
+    console.error("PDF Generation Error:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ success: false, message: "Failed to generate PDF receipt" });
+    }
+  }
+};
 // Create new booking
 export const createBooking = async (req, res) => {
   try {
@@ -51,6 +85,7 @@ export const createBooking = async (req, res) => {
       totalPrice,
       bookingDate: new Date(),
       bookingStatus: "active",
+      expiresAt: new Date(Date.now() + 30 * 60 * 1000),
     });
 
     // Save booking first
@@ -289,6 +324,108 @@ export const deleteBooking = async (req, res) => {
     });
   } catch (err) {
     console.error("Error deleting booking:", err);
+    res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// Extend booking duration
+export const extendBooking = async (req, res) => {
+  try {
+    const bookingId = req.params.id;
+    const userId = req.user._id;
+    const { additionalHours } = req.body;
+
+    // Validate input
+    if (!additionalHours || additionalHours < 1 || additionalHours > 12) {
+      return res.status(400).json({
+        success: false,
+        message: "Additional hours must be between 1 and 12",
+      });
+    }
+
+    const booking = await Booking.findById(bookingId).populate("parkingId");
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Ownership check
+    if (booking.userId.toString() !== userId.toString()) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to extend this booking",
+      });
+    }
+
+    // Only active bookings can be extended
+    if (booking.bookingStatus !== "active") {
+      return res.status(400).json({
+        success: false,
+        message: "Only active bookings can be extended",
+      });
+    }
+
+    // Limit to max 3 extensions
+    if (booking.extensions && booking.extensions.length >= 3) {
+      return res.status(400).json({
+        success: false,
+        message:
+          "Maximum of 3 extensions allowed per booking. Please make a new booking.",
+      });
+    }
+
+    const parking = booking.parkingId;
+    const pricePerHour = parking.pricePerHour || 0;
+    const additionalCost = pricePerHour * additionalHours;
+
+    // Calculate new expiry from original booking date + total duration
+    const totalDurationAfterExtension =
+      booking.duration + Number(additionalHours);
+    const bookingStart = new Date(booking.bookingDate);
+    const newExpiry = new Date(
+      bookingStart.getTime() + totalDurationAfterExtension * 60 * 60 * 1000
+    );
+
+    // Store original duration on first extension
+    if (!booking.originalDuration) {
+      booking.originalDuration = booking.duration;
+    }
+
+    booking.duration = totalDurationAfterExtension;
+    booking.totalPrice = booking.totalPrice + additionalCost;
+    booking.expiresAt = newExpiry;
+    booking.extensions.push({
+      extendedAt: new Date(),
+      additionalHours: Number(additionalHours),
+      additionalCost,
+      newExpiry,
+    });
+
+    await booking.save();
+
+    const updated = await Booking.findById(bookingId).populate("parkingId");
+
+    res.json({
+      success: true,
+      message: `Booking extended by ${additionalHours} hour${additionalHours > 1 ? "s" : ""} successfully`,
+      data: {
+        bookingId: updated._id,
+        newDuration: updated.duration,
+        newTotalPrice: updated.totalPrice,
+        newExpiry,
+        additionalCost,
+        extensionsUsed: updated.extensions.length,
+        extensionsRemaining: 3 - updated.extensions.length,
+      },
+    });
+  } catch (err) {
+    console.error("Extend booking error:", err);
     res.status(500).json({
       success: false,
       message: err.message,

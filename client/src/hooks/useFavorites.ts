@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { toast } from "react-hot-toast";
 
 export interface Favorite {
   _id: string;
@@ -22,7 +23,7 @@ export const useFavorites = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && Array.isArray(data.data)) {
         const favoriteIds = data.data.map((fav: Favorite) => fav._id);
         setFavorites(favoriteIds);
       }
@@ -36,7 +37,7 @@ export const useFavorites = () => {
       e.stopPropagation();
 
       if (!token || !user) {
-        alert("Please login to save favorite locations");
+        toast.error("Please login to save favorite locations");
         navigate("/login");
         return;
       }
@@ -62,9 +63,13 @@ export const useFavorites = () => {
           // Revert on failure
           fetchFavorites();
           console.error("Failed to toggle favorite:", data.message);
+          toast.error("Failed to update favorites");
+        } else {
+          toast.success(prev.includes(locationId) ? "Removed from favorites" : "Added to favorites");
         }
       } catch (err) {
         console.error("Error toggling favorite:", err);
+        toast.error("Failed to update favorites");
         fetchFavorites(); // Revert on failure
       }
     },

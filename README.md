@@ -380,6 +380,40 @@ To add caching to a new read-heavy endpoint:
 
 ---
 
+## 🧪 Automated Integration Testing
+
+Parkfinder features a robust and modular automated integration testing suite built with **Vitest** and **Supertest** to validate critical backend API endpoints (such as Authentication and Bookings) ensuring reliability and preventing regressions.
+
+### 1. Framework Setup & Configuration
+- **Vitest:** The primary testing framework offering extremely fast, isolated test execution environments. Configured globally via `server/vitest.config.js`.
+- **Supertest:** Simulates HTTP requests against the Express application in memory without starting the physical server port.
+- **MongoDB Memory Server:** To maintain determinism and test isolation, a fresh, in-memory MongoDB instance is spun up via `server/test/setup.js`. This guarantees that tests do not mutate production or local development databases.
+
+### 2. Test Environment Requirements
+The tests run completely independently. Environment variables are statically overridden via Vitest (`NODE_ENV=test`, `JWT_SECRET`, `ADMIN_SECRET`), and Redis/Database connections are stubbed to prevent conflicts.
+To run the tests, simply execute the following command in the `server` directory:
+```bash
+npm run test
+```
+
+### 3. Guidelines for Writing New Integration Tests
+When creating tests for a new endpoint (e.g., `server/test/newFeature.integration.test.js`):
+1. **Import the Server Application:**
+   ```javascript
+   import request from 'supertest';
+   import app from '../server.js';
+   ```
+2. **Utilize `describe` and `it` blocks** to organize your tests by route and behavior.
+3. **Seed Data in `beforeAll`:** If your endpoints require an authenticated user or specific database items, create them once in the `beforeAll` hook.
+4. **Assert Appropriately:** Verify HTTP status codes (`expect(res.status).toBe(200)`), response payload structures, and success/error messages.
+
+### 4. Best Practices for Maintaining Deterministic API Tests
+- **Do not share state between tests:** Each `it` block should ideally run independently. Use `beforeEach` to reset specific state if necessary.
+- **Teardown Collections:** The `setup.js` file automatically cleans up collections using `afterEach` hooks (`await collections[key].deleteMany()`) so data does not bleed across tests.
+- **Isolate External Services:** Do not hit third-party APIs (e.g., payment gateways, emails). Use tools like `vi.mock()` or simply ensure the test environment bypasses real external executions.
+
+---
+
 ## 🛡️ Zod Schema Validation Architecture
 
 To ensure data integrity and prevent malformed payloads from reaching the controllers, Parkfinder utilizes a centralized request validation layer powered by **Zod**.

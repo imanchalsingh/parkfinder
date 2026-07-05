@@ -29,11 +29,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setToken(t);
     localStorage.setItem("user", JSON.stringify(u));
     localStorage.setItem("token", t);
+    localStorage.setItem("lastActivity", Date.now().toString());
   };
 
   const logout = () => {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
+    localStorage.removeItem("lastActivity");
     setUser(null);
     setToken(null);
   };

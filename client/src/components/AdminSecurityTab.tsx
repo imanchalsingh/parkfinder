@@ -107,13 +107,14 @@ export default function AdminSecurityTab() {
             ) : (
               <div className="space-y-4">
                 <div className="bg-white p-4 inline-block rounded-xl border border-gray-200">
-                  <img src={qrCode} alt="2FA QR Code" className="w-48 h-48" />
+                  <img src={qrCode} alt="Scan this QR code with your authenticator app to enable 2FA" className="w-48 h-48" />
                 </div>
                 <p className="dark:text-white font-mono bg-gray-100 dark:bg-gray-800 p-2 rounded">
                   Manual Entry Key: {secret}
                 </p>
                 <div className="flex items-center gap-3">
                   <input
+                    aria-label="Enter 6-digit code to verify 2FA"
                     type="text"
                     value={tokenInput}
                     onChange={(e) => setTokenInput(e.target.value)}
@@ -141,6 +142,7 @@ export default function AdminSecurityTab() {
             </p>
             <div className="flex items-center gap-3">
               <input
+                aria-label="Enter 6-digit code to disable 2FA"
                 type="text"
                 value={tokenInput}
                 onChange={(e) => setTokenInput(e.target.value)}

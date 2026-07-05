@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import MapComponent from "./MapComponent";
 import * as Icons from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import { useTranslation } from "react-i18next";
 
 const THEME_CLASSES = {
   light: {
@@ -51,6 +52,7 @@ const HomePage: React.FC = () => {
 
   // Detect system theme
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   interface ParkingSlot {
     [key: string]: unknown;
@@ -207,13 +209,13 @@ const HomePage: React.FC = () => {
               <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
                 <span className="block">
                   <span className="bg-linear-to-br from-gray-900 via-[#1B42CB] to-[#FF2F6C] bg-clip-text text-transparent dark:from-white">
-                    INSTANT PARKING
+                    {t("home.hero_title_1")}
                   </span>
                 </span>
                 <span className="block mt-2">
                   <span className="relative">
                     <span className="bg-linear-to-br from-[#FF2F6C] via-[#1B42CB] to-gray-900 bg-clip-text text-transparent dark:to-white">
-                      ANYWHERE, ANYTIME
+                      {t("home.hero_title_2")}
                     </span>
                     <span
                       className={`absolute -bottom-2 left-0 w-full h-1 bg-linear-to-br from-[#FF2F6C] to-[#1B42CB] rounded-full`}
@@ -243,14 +245,7 @@ const HomePage: React.FC = () => {
               <p
                 className={`text-xl ${themeClasses.textSecondary} mb-10 max-w-2xl leading-relaxed`}
               >
-                <span className={`font-semibold ${themeClasses.text}`}>
-                  Real-time parking analytics
-                </span>{" "}
-                with
-                <span className="text-green-500"> real-time updates</span>.
-                Reserve spots before you arrive, get{" "}
-                <span className="text-[#FF2F6C]">priority access</span>, and pay
-                seamlessly.
+                {t("home.hero_desc")}
               </p>
 
               <div className="flex flex-col sm:flex-row gap-5 mb-12">
@@ -258,7 +253,7 @@ const HomePage: React.FC = () => {
                   to="/parkingslots"
                   className={`group px-10 py-3 bg-linear-to-br from-[#1B42CB] via-[#6C3BFF] to-[#FF2F6C] text-white font-bold rounded-2xl text-lg hover:shadow-2xl hover:shadow-[#FF2F6C]/30 transition-all duration-500 transform hover:-translate-y-1 hover:scale-[1.02] flex items-center justify-center gap-3`}
                 >
-                  <span>Find Parking</span>
+                  <span>{t("home.find_parking")}</span>
                   <Icons.ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />
                 </Link>
               </div>

@@ -1,23 +1,11 @@
 import express from "express";
-import {
-  getParkingLots,
-  getParkingLotById,
-  createParkingLot,
-  updateParkingLot,
-  deleteParkingLot,
-} from "../controllers/parkingController.js";
+import { enterVehicle, exitVehicle } from "../controllers/parkingLog.controller.js";
 import { authMiddleware } from "../middleware/auth.js";
-import { authorizeRoles } from "../middleware/authorizeRoles.js";
+import { adminMiddleware } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public routes
-router.get("/", getParkingLots);
-router.get("/:id", getParkingLotById);
-
-// Admin routes
-router.post("/", authMiddleware, authorizeRoles("admin"), createParkingLot);
-router.put("/:id", authMiddleware, authorizeRoles("admin"), updateParkingLot);
-router.delete("/:id", authMiddleware, authorizeRoles("admin"), deleteParkingLot);
+router.post("/entry/:bookingId", authMiddleware, adminMiddleware, enterVehicle);
+router.post("/exit/:bookingId", authMiddleware, adminMiddleware, exitVehicle);
 
 export default router;

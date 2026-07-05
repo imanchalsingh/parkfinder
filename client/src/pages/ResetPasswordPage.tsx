@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Lock, ArrowLeft, ShieldCheck } from "lucide-react";
+import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 
 export default function ResetPasswordPage() {
   const { token = "" } = useParams();
@@ -91,6 +92,7 @@ export default function ResetPasswordPage() {
               placeholder="Enter a new password"
             />
           </div>
+          <PasswordStrengthMeter password={password} />
 
           <label
             className="block text-sm font-medium text-[#EEECF6]"

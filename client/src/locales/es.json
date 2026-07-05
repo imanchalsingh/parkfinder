@@ -1,0 +1,27 @@
+{
+  "navbar": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "parking_slots": "Aparcamientos",
+    "bookings": "Reservas",
+    "favorites": "Favoritos",
+    "contact": "Contacto",
+    "login": "Iniciar sesión",
+    "signup": "Regístrate",
+    "logout": "Cerrar sesión",
+    "brand": "SmartPark"
+  },
+  "home": {
+    "hero_title_1": "ESTACIONAMIENTO",
+    "hero_title_2": "EN CUALQUIER MOMENTO",
+    "hero_desc": "Análisis de estacionamiento en tiempo real. Reserve lugares antes de llegar, obtenga acceso prioritario y pague sin problemas.",
+    "find_parking": "Buscar Estacionamiento"
+  },
+  "session": {
+    "warning_title": "Advertencia de tiempo de espera de sesión",
+    "warning_desc": "Ha estado inactivo durante un tiempo. Por su seguridad, su sesión se cerrará automáticamente en",
+    "seconds": "segundos.",
+    "logout_now": "Cerrar sesión ahora",
+    "continue": "Continuar Sesión"
+  }
+}

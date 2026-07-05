@@ -6,6 +6,7 @@ import * as L from "leaflet";
 import { useRouteNavigation } from "../hooks/useRouteNavigation";
 import { Navigation, Loader2, X } from "lucide-react";
 import { getUserLocation } from "../utils/geolocation";
+import { toast } from "react-hot-toast";
 
 // Fix for default icons
 delete (L.Icon.Default.prototype as L.Icon.Default & { _getIconUrl?: unknown })._getIconUrl;
@@ -106,7 +107,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
 
   const handleNavigate = (slot: ParkingSlot) => {
     if (!slot.coordinates || typeof slot.coordinates.lat !== "number" || typeof slot.coordinates.lng !== "number") {
-      alert("Error: Parking slot coordinates are missing or invalid.");
+      toast.error("Error: Parking slot coordinates are missing or invalid.");
       return;
     }
 

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useState } from "react";
 import * as Icons from "lucide-react";
+import LazyImage from "./LazyImage";
 
 interface ImageCarouselProps {
   images: string[];
@@ -12,7 +13,6 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
   name,
 }) => {
   const [current, setCurrent] = useState(0);
-  const [loaded, setLoaded] = useState(false);
 
   if (!images || images.length === 0) {
     return (
@@ -29,33 +29,21 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
 
   const prev = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLoaded(false);
     setCurrent((c) => (c - 1 + images.length) % images.length);
   };
   const next = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setLoaded(false);
     setCurrent((c) => (c + 1) % images.length);
   };
 
   return (
     <div className="relative w-full h-48 overflow-hidden bg-[#111] group">
-      {!loaded && (
-        <div className="absolute inset-0 flex items-center justify-center bg-[#111]">
-          <div className="w-8 h-8 rounded-full border-2 border-[#1B42CB] border-t-transparent animate-spin" />
-        </div>
-      )}
-      <img
+      <LazyImage
         src={images[current]}
         alt={`${name} photo ${current + 1}`}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        onError={() => setLoaded(true)}
-        className={`w-full h-full object-cover transition-opacity duration-300 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
+        className="w-full h-full"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
       {images.length > 1 && (
         <>
           <button
@@ -76,7 +64,6 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({
                 key={i}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setLoaded(false);
                   setCurrent(i);
                 }}
                 className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${

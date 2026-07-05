@@ -11,6 +11,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 // @ts-ignore
 import { Pie, Bar, Line } from "react-chartjs-2";
 import * as Icons from "lucide-react";
+import { BarChart, Bar as RechartsBar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend as RechartsLegend } from "recharts";
 
 // Register ChartJS components
 ChartJS.register(
@@ -858,7 +859,29 @@ const DashboardPage: React.FC = () => {
               Booking & Spending Trends
             </h3>
             <div className="h-80">
-              <Bar data={barChartData} options={chartOptions} />
+              {stats?.bookingTrends && stats.bookingTrends.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={stats.bookingTrends} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={theme === 'dark' ? "rgba(238, 236, 246, 0.1)" : "rgba(0, 0, 0, 0.1)"} />
+                    <XAxis dataKey="month" stroke={theme === 'dark' ? "#EEECF6" : "#4B5563"} />
+                    <YAxis stroke={theme === 'dark' ? "#EEECF6" : "#4B5563"} />
+                    <RechartsTooltip 
+                      contentStyle={{ 
+                        backgroundColor: theme === 'dark' ? '#191919' : '#ffffff',
+                        borderColor: theme === 'dark' ? 'rgba(27, 66, 203, 0.2)' : '#e5e7eb',
+                        color: theme === 'dark' ? '#EEECF6' : '#111827'
+                      }}
+                    />
+                    <RechartsLegend />
+                    <RechartsBar dataKey="spent" name="Spent (₹)" fill={theme === 'dark' ? "#1B42CB" : "#2563eb"} radius={[4, 4, 0, 0]} />
+                    <RechartsBar dataKey="bookings" name="Total Bookings" fill={theme === 'dark' ? "#FF2F6C" : "#db2777"} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className={`h-full flex items-center justify-center ${themeClasses.textMuted}`}>
+                  No spending data available yet.
+                </div>
+              )}
             </div>
           </div>
 

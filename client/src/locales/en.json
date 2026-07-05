@@ -1,0 +1,27 @@
+{
+  "navbar": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "parking_slots": "Parking Slots",
+    "bookings": "Bookings",
+    "favorites": "Favorites",
+    "contact": "Contact",
+    "login": "Login",
+    "signup": "Sign Up",
+    "logout": "Logout",
+    "brand": "SmartPark"
+  },
+  "home": {
+    "hero_title_1": "INSTANT PARKING",
+    "hero_title_2": "ANYWHERE, ANYTIME",
+    "hero_desc": "Real-time parking analytics with real-time updates. Reserve spots before you arrive, get priority access, and pay seamlessly.",
+    "find_parking": "Find Parking"
+  },
+  "session": {
+    "warning_title": "Session Timeout Warning",
+    "warning_desc": "You have been inactive for a while. For your security, you will be automatically logged out in",
+    "seconds": "seconds.",
+    "logout_now": "Log Out Now",
+    "continue": "Continue Session"
+  }
+}

@@ -15,6 +15,7 @@ import {
   Crown,
   UserPlus,
 } from "lucide-react";
+import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 
 const THEME_CLASSES = {
   light: {
@@ -131,7 +132,6 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
 
   const navigate = useNavigate();
 
@@ -202,19 +202,8 @@ export default function SignupPage() {
     return isValid;
   };
 
-  const checkPasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/\d/.test(password)) strength++;
-    if (/[!@#$%^&*]/.test(password)) strength++;
-    setPasswordStrength(strength);
-  };
-
   const handlePasswordChange = (value: string) => {
     setForm((prev) => ({ ...prev, password: value }));
-    checkPasswordStrength(value);
     if (errors.password) setErrors((prev) => ({ ...prev, password: "" }));
     if (msg) setMsg("");
   };
@@ -278,27 +267,6 @@ export default function SignupPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const getPasswordStrengthColor = () => {
-    if (passwordStrength <= 2) return "bg-red-500";
-    if (passwordStrength === 3) return "bg-yellow-500";
-    if (passwordStrength >= 4) return "bg-green-500";
-    return "bg-gray-500";
-  };
-
-  const getPasswordStrengthText = () => {
-    if (passwordStrength <= 2) return "Weak";
-    if (passwordStrength === 3) return "Good";
-    if (passwordStrength >= 4) return "Strong";
-    return "Very Weak";
-  };
-
-  const getStrengthTextColor = () => {
-    if (passwordStrength <= 2) return themeClasses.strength.weak;
-    if (passwordStrength === 3) return themeClasses.strength.good;
-    if (passwordStrength >= 4) return themeClasses.strength.strong;
-    return themeClasses.textMuted;
   };
 
   return (
@@ -408,6 +376,7 @@ export default function SignupPage() {
             {/* Name Field */}
             <div>
               <label
+                htmlFor="name"
                 className={`block text-sm font-medium ${themeClasses.text} mb-2`}
               >
                 Full Name
@@ -417,6 +386,7 @@ export default function SignupPage() {
                   <User className={`w-5 h-5 ${themeClasses.iconColor}`} />
                 </div>
                 <input
+                  id="name"
                   type="text"
                   required
                   className={`w-full pl-12 pr-4 py-3 ${themeClasses.inputBg} border ${
@@ -440,6 +410,7 @@ export default function SignupPage() {
             {/* Email Field */}
             <div>
               <label
+                htmlFor="email"
                 className={`block text-sm font-medium ${themeClasses.text} mb-2`}
               >
                 Email Address
@@ -449,6 +420,7 @@ export default function SignupPage() {
                   <Mail className={`w-5 h-5 ${themeClasses.iconColor}`} />
                 </div>
                 <input
+                  id="email"
                   type="email"
                   required
                   className={`w-full pl-12 pr-4 py-3 ${themeClasses.inputBg} border ${
@@ -474,6 +446,7 @@ export default function SignupPage() {
             {/* Password Field */}
             <div>
               <label
+                htmlFor="password"
                 className={`block text-sm font-medium ${themeClasses.text} mb-2`}
               >
                 Password
@@ -483,6 +456,7 @@ export default function SignupPage() {
                   <Lock className={`w-5 h-5 ${themeClasses.iconColor}`} />
                 </div>
                 <input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   required
                   className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
@@ -496,6 +470,7 @@ export default function SignupPage() {
                 />
                 <button
                   type="button"
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:${themeClasses.text} transition-colors`}
                 >
@@ -508,26 +483,7 @@ export default function SignupPage() {
               </div>
 
               {/* Password Strength Meter */}
-              {form.password && (
-                <div className="mt-2">
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className={themeClasses.textMuted}>
-                      Password strength:
-                    </span>
-                    <span className={getStrengthTextColor()}>
-                      {getPasswordStrengthText()}
-                    </span>
-                  </div>
-                  <div
-                    className={`h-2 ${themeClasses.inputBg} rounded-full overflow-hidden`}
-                  >
-                    <div
-                      className={`h-full ${getPasswordStrengthColor()} transition-all duration-300`}
-                      style={{ width: `${(passwordStrength / 5) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-              )}
+              <PasswordStrengthMeter password={form.password} />
 
               {errors.password && (
                 <p
@@ -542,6 +498,7 @@ export default function SignupPage() {
             {/* Confirm Password Field */}
             <div>
               <label
+                htmlFor="confirmPassword"
                 className={`block text-sm font-medium ${themeClasses.text} mb-2`}
               >
                 Confirm Password
@@ -551,6 +508,7 @@ export default function SignupPage() {
                   <Lock className={`w-5 h-5 ${themeClasses.iconColor}`} />
                 </div>
                 <input
+                  id="confirmPassword"
                   type={showConfirmPassword ? "text" : "password"}
                   required
                   className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
@@ -566,6 +524,7 @@ export default function SignupPage() {
                 />
                 <button
                   type="button"
+                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:${themeClasses.text} transition-colors`}
                 >
@@ -590,6 +549,7 @@ export default function SignupPage() {
             {form.role === "admin" && (
               <div>
                 <label
+                  htmlFor="adminSecret"
                   className={`block text-sm font-medium ${themeClasses.text} mb-2`}
                 >
                   Admin Secret Key
@@ -599,6 +559,7 @@ export default function SignupPage() {
                     <Key className="w-5 h-5 text-[#FF2F6C]" />
                   </div>
                   <input
+                    id="adminSecret"
                     type={showAdminSecret ? "text" : "password"}
                     required={form.role === "admin"}
                     className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
@@ -614,6 +575,7 @@ export default function SignupPage() {
                   />
                   <button
                     type="button"
+                    aria-label={showAdminSecret ? "Hide admin secret key" : "Show admin secret key"}
                     onClick={() => setShowAdminSecret(!showAdminSecret)}
                     className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:text-[#FF2F6C] transition-colors`}
                   >

@@ -12,15 +12,25 @@ import dashboardRoute from "./routes/dashboardRoute.js";
 import predictionRoute from "./routes/predictionRoute.js";
 import favoritesRoute from "./routes/favoritesRoute.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import contactRoute from "./routes/contactRoute.js";
 import cors from "cors";
 import dotenv from "dotenv";
 import floorVisualizationRoute from "./routes/floorVisualizationRoute.js";
+import reviewRoute from "./routes/reviewRoute.js";
 import { connectRedis } from "./utils/cache.js";
+import "./jobs/bookingExpiry.js";
+import { setupLogger } from "./utils/logger.js";
+import { requestIdMiddleware } from "./middleware/requestId.js";
+
+// Initialize global logger override
+setupLogger();
 
 dotenv.config({ path: ".env" });
 
 // Connect to Redis
-connectRedis();
+if (process.env.NODE_ENV !== 'test') {
+  connectRedis();
+}
 
 // Validate critical environment variables at startup
 const requiredEnvVars = ["JWT_SECRET", "ADMIN_SECRET"];
@@ -35,6 +45,8 @@ if (missingEnvVars.length > 0) {
 }
 
 const app = express();
+app.set('trust proxy', 1); // Trust first proxy for express-rate-limit to work correctly behind reverse proxies
+
 const PORT = process.env.PORT || 5000;
 app.use(
   cors({
@@ -49,17 +61,30 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Attach Request ID Tracking Context
+app.use(requestIdMiddleware);
+
 // Connect to Database
-connectDB();
+if (process.env.NODE_ENV !== 'test') {
+  connectDB();
+}
 // use auth route.
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/2fa", auth2faRoutes);
 // get/Use Booking APi data
 app.use("/api", getbookingdata);
-// get/Use Parking API routes
+
+// Nested parking sub-routes — these MUST be registered BEFORE the general
+// "/api/parking" mount below. Express matches mounted routers by path prefix
+// in registration order, so if the broader "/api/parking" router is mounted
+// first, it intercepts requests like "/api/parking/:id/floors" before they
+// ever reach floorVisualizationRoute or peakHoursRoute.
+app.use("/api/parking/:parkingId/floors", floorVisualizationRoute);
+app.use("/api/parking/:parkingId/peak-hours", peakHoursRoute);
+
+// get/Use Parking API routes (general — must come AFTER the nested routes above)
 app.use("/api/parking", parkingApi);
 
-app.use("/api/parking/:parkingId/floors", floorVisualizationRoute);
 // Use Booking Routes
 app.use("/api/bookings", bookingRouter);
 // Use slot management route.
@@ -73,6 +98,10 @@ app.use("/api", parkingLogRoute);
 // use favorites route
 app.use("/api/favorites", favoritesRoute);
 
+// use contact route
+app.use("/api/contact", contactRoute);
+// use reviews route
+app.use("/api/reviews", reviewRoute);
 // use dashboard.js
 app.use("/api/dashboard", dashboardRoute);
 
@@ -80,8 +109,8 @@ app.use("/api/dashboard", dashboardRoute);
 app.use("/api/predictions", predictionRoute);
 
 // Setup Swagger Docs
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+// const swaggerDocs = swaggerJsDoc(swaggerOptions);
+// app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Root Route
 app.get("/", (req, res) => {
@@ -98,6 +127,10 @@ app.use((err, req, res, next) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`);
+  });
+}
+
+export default app;

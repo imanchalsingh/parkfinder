@@ -9,8 +9,8 @@ export const createBookingSchema = z.object({
 
 export const updateBookingStatusSchema = z.object({
   body: z.object({
-    status: z.enum(['active', 'cancelled', 'completed'], {
-      errorMap: () => ({ message: 'Status must be active, cancelled, or completed' })
+    status: z.enum(['active', 'cancelled', 'completed', 'expired'], {
+      errorMap: () => ({ message: 'Status must be active, cancelled, completed, or expired' })
     }),
   }),
   params: z.object({

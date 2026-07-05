@@ -11,6 +11,9 @@ const userSchema = new mongoose.Schema(
     isTwoFactorEnabled: { type: Boolean, default: false },
     resetToken: String,
     resetTokenExpiry: Date,
+    trustedDevices: [{ type: String }],
+    emailVerificationOTP: { type: String, select: false },
+    emailVerificationOTPExpiry: Date,
     favorites: [
       {
         type: mongoose.Schema.Types.ObjectId,

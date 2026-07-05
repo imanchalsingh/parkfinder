@@ -41,6 +41,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
           </div>
           <input
             type="text"
+            aria-label="Search location or parking name"
             placeholder="Search location or parking name..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -94,6 +95,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
           {/* Status Filter */}
           <select
+            aria-label="Filter by Status"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
             className={`px-4 py-4 ${themeClasses.cardBgSecondary} border ${themeClasses.border} rounded-xl ${themeClasses.text} focus:outline-none focus:border-[#1B42CB] focus:ring-2 focus:ring-[#1B42CB]/20 transition-all duration-300`}
@@ -106,6 +108,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
           {/* Sort By */}
           <select
+            aria-label="Sort by"
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value)}
             className={`px-4 py-4 ${themeClasses.cardBgSecondary} border ${themeClasses.border} rounded-xl ${themeClasses.text} focus:outline-none focus:border-[#1B42CB] focus:ring-2 focus:ring-[#1B42CB]/20 transition-all duration-300`}

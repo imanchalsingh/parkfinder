@@ -10,6 +10,7 @@ declare const process: {
 export interface ParkingSlot {
   _id: string;
   name: string;
+  description?: string;
   location: string;
   pricePerHour: number;
   status: string;
@@ -17,6 +18,7 @@ export interface ParkingSlot {
   capacity: number;
   distance: string;
   rating: number;
+  description?: string;
   coordinates?: {
     lat: number;
     lng: number;
@@ -27,6 +29,7 @@ export interface ParkingSlot {
     managerName?: string;
   };
   images?: string[];
+  description?: string;
 }
 
 export interface ApiResponse {
@@ -105,7 +108,7 @@ export const useParkingSlots = () => {
   }, [evFilter, fetchParkingSlots]);
 
   const refetch = useCallback(() => {
-    fetchParkingSlots(evFilter);
+    return fetchParkingSlots(evFilter);
   }, [evFilter, fetchParkingSlots]);
 
   return {

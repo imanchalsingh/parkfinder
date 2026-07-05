@@ -4,6 +4,7 @@ const parkingSchema = new mongoose.Schema(
     name: String,
     description: { type: String, default: "" },
     location: String,
+    description: { type: String, default: "" },
     pricePerHour: Number,
     status: String,
     distance: String,

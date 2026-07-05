@@ -5,11 +5,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { authMiddleware } from "../middleware/auth.js";
 import { sendPasswordResetEmail } from "../utils/email.js";
-import { signup, login, verify, forgotPassword, resetPassword } from "../controllers/auth.controller.js";
+import { signup, login, verify, forgotPassword, resetPassword, verifyEmail2FA, verify2FALogin } from "../controllers/auth.controller.js";
 import { authLimiter, resetLimiter } from "../middleware/rateLimiter.js";
 import { validateRequest } from "../middleware/validate.js";
 import { signupSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from "../validators/auth.validator.js";
-import { authLimiter, resetLimiter } from "../middleware/rateLimiter.js";
 
 
 const router = express.Router();
@@ -46,6 +45,9 @@ router.post("/login", authLimiter, validateRequest(loginSchema), login);
  *         description: Invalid or expired token
  */
 router.post("/login/verify-2fa", authLimiter, verify2FALogin);
+
+// Verify Email 2FA
+router.post("/login/verify-email-2fa", authLimiter, verifyEmail2FA);
 
 // Forgot password
 router.post("/forgot-password", resetLimiter, validateRequest(forgotPasswordSchema), forgotPassword);

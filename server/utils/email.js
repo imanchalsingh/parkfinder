@@ -48,3 +48,49 @@ export const sendPasswordResetEmail = async ({ to, resetToken }) => {
 
   return resetLink;
 };
+
+export const sendContactSupportEmail = async ({ name, email, subject, message }) => {
+  const transporter = getTransporter();
+  
+  await transporter.verify();
+  
+  const supportEmail = process.env.SUPPORT_EMAIL || process.env.SMTP_USER || process.env.EMAIL_USER;
+  
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER || process.env.EMAIL_USER,
+    to: supportEmail,
+    replyTo: email,
+    subject: `Support Request: ${subject}`,
+    html: `
+      <h2>New Support Request from ${name}</h2>
+      <p><strong>Email:</strong> ${email}</p>
+      <p><strong>Subject:</strong> ${subject}</p>
+      <hr />
+      <h3>Message:</h3>
+      <p>${message.replace(/\n/g, '<br>')}</p>
+    `,
+  });
+};
+
+export const send2FAEmail = async ({ to, otp }) => {
+  const transporter = getTransporter();
+
+  await transporter.verify();
+  await transporter.sendMail({
+    from: process.env.EMAIL_FROM || process.env.SMTP_USER || process.env.EMAIL_USER,
+    to,
+    subject: "Your SmartPark Login Verification Code",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 10px;">
+        <h2 style="color: #1B42CB; text-align: center;">SmartPark Security</h2>
+        <p>Hello,</p>
+        <p>We noticed a login attempt from a new device. To verify your identity, please enter the following 6-digit code:</p>
+        <div style="background-color: #f3f4f6; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+          <strong style="font-size: 24px; letter-spacing: 5px; color: #111827;">${otp}</strong>
+        </div>
+        <p>This code will expire in <strong>10 minutes</strong>.</p>
+        <p style="color: #6b7280; font-size: 14px;">If you did not attempt to log in, please secure your account by changing your password immediately.</p>
+      </div>
+    `
+  });
+};

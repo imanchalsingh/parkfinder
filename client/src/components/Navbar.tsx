@@ -3,6 +3,8 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import * as Icons from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
+import { useTranslation } from "react-i18next";
+import { useOnboarding } from "../context/OnboardingContext";
 
 const THEME_CLASSES = {
   light: {
@@ -52,8 +54,9 @@ const Navbar: React.FC = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const { theme, toggleTheme } = useTheme();
+  const { launchOnboarding } = useOnboarding();
 
- 
+  const { t, i18n } = useTranslation();
   // =========================
   // SCROLL EFFECT
   // =========================
@@ -82,24 +85,34 @@ const Navbar: React.FC = () => {
 
   const navItems = [
     {
-      name: "Home",
+      name: t("navbar.home"),
       path: "/",
       icon: Icons.Home,
     },
     {
-      name: "Dashboard",
+      name: t("navbar.dashboard"),
       path: "/dashboard",
       icon: Icons.LayoutDashboard,
     },
     {
-      name: "Parking Slots",
+      name: t("navbar.parking_slots"),
       path: "/parkingslots",
       icon: Icons.MapPin,
     },
     {
-      name: "Bookings",
+      name: t("navbar.bookings"),
       path: "/bookings",
       icon: Icons.Calendar,
+    },
+    {
+      name: t("navbar.favorites"),
+      path: "/favorites",
+      icon: Icons.Heart,
+    },
+    {
+      name: t("navbar.contact"),
+      path: "/contact",
+      icon: Icons.LifeBuoy,
     },
 
     ...(user?.role === "admin"
@@ -198,6 +211,7 @@ const Navbar: React.FC = () => {
                   <Link
                     key={item.name}
                     to={item.path}
+                    aria-current={isActive(item.path) ? "page" : undefined}
                     className={`
                       relative
                       flex items-center gap-2
@@ -239,6 +253,57 @@ const Navbar: React.FC = () => {
             {/* ========================= */}
 
             <div className="hidden md:flex items-center gap-4">
+              {/* LANGUAGE TOGGLE */}
+              <button
+                onClick={() => i18n.changeLanguage(i18n.language === "en" ? "es" : "en")}
+                aria-label="Toggle Language"
+                className={`
+                  relative overflow-hidden
+                  w-12 h-12
+                  rounded-2xl
+                  border
+                  flex items-center justify-center
+                  transition-all duration-500
+                  hover:scale-105
+                  active:scale-95
+                  group
+                  font-bold
+                  ${themeClasses.card}
+                  ${themeClasses.text}
+                `}
+              >
+                <div
+                  className={`
+                    absolute inset-0
+                    opacity-0 group-hover:opacity-100
+                    transition-opacity duration-500
+                    bg-gradient-to-r ${themeClasses.gradient}
+                    blur-2xl
+                  `}
+                ></div>
+                <span className="relative z-10">{i18n.language === "es" ? "ES" : "EN"}</span>
+              </button>
+
+              {/* TOUR BUTTON */}
+              <button
+                onClick={launchOnboarding}
+                aria-label="How it works"
+                className={`
+                  flex items-center gap-2
+                  px-4 py-2.5
+                  rounded-2xl
+                  border
+                  font-medium
+                  transition-all duration-300
+                  hover:scale-[1.02]
+                  ${themeClasses.card}
+                  ${themeClasses.text}
+                `}
+              >
+                <Icons.HelpCircle className="w-4 h-4" />
+                <span className="text-sm">Tour</span>
+              </button>
+
               {/* THEME TOGGLE */}
 
               <button
@@ -436,6 +501,8 @@ const Navbar: React.FC = () => {
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              aria-label="Toggle mobile menu"
+              aria-expanded={isMobileMenuOpen}
               className={`
                 md:hidden
                 w-11 h-11
@@ -498,7 +565,7 @@ const Navbar: React.FC = () => {
               <button
                 onClick={toggleTheme}
                 aria-label="Toggle Theme"
-                className={`fixed top-5 right-5 z-50 p-3 rounded-full backdrop-blur-lg border transition-all duration-300 hover:scale-110 ${
+                className={`fixed top-5 right-[5.5rem] z-50 p-3 rounded-full backdrop-blur-lg border transition-all duration-300 hover:scale-110 ${
                   theme === "light"
                     ? "bg-white border-gray-300 text-black"
                     : "bg-white/10 border-white/20 text-white"
@@ -511,6 +578,37 @@ const Navbar: React.FC = () => {
                 )}
               </button>
 
+              <button
+                onClick={() => i18n.changeLanguage(i18n.language === "en" ? "es" : "en")}
+                aria-label="Toggle Language"
+                className={`fixed top-5 right-[10rem] z-50 px-3 py-3 font-bold rounded-full backdrop-blur-lg border transition-all duration-300 hover:scale-110 ${
+                  theme === "light"
+                    ? "bg-white border-gray-300 text-black"
+                    : "bg-white/10 border-white/20 text-white"
+                }`}
+              >
+                {i18n.language === "es" ? "ES" : "EN"}
+              </button>
+
+              {/* TOUR BUTTON MOBILE */}
+              <button
+                onClick={() => {
+                  launchOnboarding();
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`
+                  w-full
+                  flex items-center gap-3
+                  px-4 py-4
+                  rounded-2xl
+                  transition-all duration-300
+                  ${themeClasses.textSecondary} ${themeClasses.hover}
+                `}
+              >
+                <Icons.HelpCircle className="w-5 h-5" />
+                <span>How it works</span>
+              </button>
+
               {/* NAV ITEMS */}
 
               {navItems.map((item) => {
@@ -521,6 +619,7 @@ const Navbar: React.FC = () => {
                     key={item.name}
                     to={item.path}
                     onClick={() => setIsMobileMenuOpen(false)}
+                    aria-current={isActive(item.path) ? "page" : undefined}
                     className={`
                       flex items-center gap-3
                       px-4 py-4

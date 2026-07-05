@@ -5,6 +5,7 @@ import * as Icons from "lucide-react";
 import type { ParkingSlot } from "../hooks/useParkingSlots";
 import { useAuth } from "../context/AuthContext";
 import { useThemeClasses } from "../hooks/useThemeClasses";
+import { toast } from "react-hot-toast";
 
 interface BookingModalProps {
   selectedSlot: ParkingSlot | null;
@@ -46,16 +47,16 @@ export const BookingModal: React.FC<BookingModalProps> = ({
       });
       const data = await res.json();
       if (data.success) {
-        alert("Booking successful!");
+        toast.success("Booking successful!");
         onBookingSuccess();
         onClose();
         navigate("/bookings");
       } else {
-        alert(`❌ ${data.message || "Booking failed"}`);
+        toast.error(`${data.message || "Booking failed"}`);
       }
     } catch (err) {
       console.error("Booking error:", err);
-      alert("Failed to book slot. Please try again.");
+      toast.error("Failed to book slot. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -68,6 +69,9 @@ export const BookingModal: React.FC<BookingModalProps> = ({
   return (
     <div
       id="booking-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
       className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
     >
       <div
@@ -77,12 +81,14 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         <div className={`p-6 border-b ${themeClasses.border}`}>
           <div className="flex items-center justify-between">
             <h2
+              id="modal-title"
               className={`text-2xl font-bold bg-gradient-to-r ${themeClasses.gradient.accent} bg-clip-text text-transparent`}
             >
               Confirm Booking
             </h2>
             <button
               onClick={onClose}
+              aria-label="Close modal"
               disabled={isSubmitting}
               className={`w-8 h-8 rounded-lg ${themeClasses.cardBg} border ${themeClasses.border} flex items-center justify-center ${themeClasses.text} ${themeClasses.hover} transition-colors`}
             >

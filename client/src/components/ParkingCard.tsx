@@ -3,6 +3,7 @@ import * as Icons from "lucide-react";
 import type { ParkingSlot } from "../hooks/useParkingSlots";
 import { useThemeClasses } from "../hooks/useThemeClasses";
 import ImageCarousel from "./ImageCarousel";
+import ShareButton from "./ShareButton";
 import ReactMarkdown from "react-markdown";
 import rehypeSanitize from "rehype-sanitize";
 import { calculateDistance, getDirectionsUrl } from "../utils/distance";
@@ -72,6 +73,13 @@ export const ParkingCard: React.FC<ParkingCardProps> = ({
             <span className={`text-xs font-semibold px-3 py-1 rounded-full ${availabilityColor} bg-black/20`}>
               {availabilityText}
             </span>
+            <ShareButton
+              title={slot.name}
+              text={`Check out ${slot.name} at ${slot.location}!`}
+              url={`${window.location.origin}/parkingslots`}
+              className="p-1.5 rounded-full transition-all duration-300 bg-black/20 text-white/70 hover:text-white hover:bg-black/40"
+              iconClassName="w-4 h-4"
+            />
             <button
               onClick={(e) => onToggleFavorite(e, slot._id)}
               className={`p-1.5 rounded-full transition-all duration-300 ${
