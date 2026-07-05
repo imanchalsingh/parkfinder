@@ -53,24 +53,61 @@ export const signup = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, deviceId } = req.body;
+    const INVALID_CREDENTIALS_MESSAGE = "Invalid email or password";
 
     const user = await User.findOne({ email });
-    if (!user) return res.json({ success: false, message: "User not found" });
+
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: INVALID_CREDENTIALS_MESSAGE });
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.json({ success: false, message: "Incorrect password" });
+
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: INVALID_CREDENTIALS_MESSAGE });
+    }
+
+    // Check if device is recognized
+    if (deviceId && !user.trustedDevices.includes(deviceId)) {
+      // Unrecognized device - Trigger Email 2FA
+      const otp = crypto.randomInt(100000, 999999).toString();
+
+      user.emailVerificationOTP = await bcrypt.hash(otp, 10);
+      user.emailVerificationOTPExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
+      await user.save();
+
+      await send2FAEmail({ to: user.email, otp });
+
+      const tempToken = jwt.sign(
+        { id: user._id, role: user.role, isEmail2FA: true },
+        process.env.JWT_SECRET,
+        { expiresIn: "10m" }
+      );
+
+      return res.json({
+        success: true,
+        requiresEmail2FA: true,
+        tempToken,
+      });
+    }
 
     // Check if user is admin or manager and has 2FA enabled
-    if ((user.role === "admin" || user.role === "manager") && user.isTwoFactorEnabled) {
+    if (
+      (user.role === "admin" || user.role === "manager") &&
+      user.isTwoFactorEnabled
+    ) {
       // Return a temporary short-lived token instead of the full access token
       const tempToken = jwt.sign(
         { id: user._id, role: user.role, isTemp: true },
         process.env.JWT_SECRET,
         { expiresIn: "5m" } // valid for 5 minutes
       );
-      
+
       return res.json({
         success: true,
         requires2FA: true,
@@ -83,7 +120,7 @@ export const login = async (req, res) => {
       process.env.JWT_SECRET,
       {
         expiresIn: "7d",
-      },
+      }
     );
 
     res.json({
@@ -176,36 +213,35 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
+    const GENERIC_RESET_MESSAGE =
+      "If an account with that email exists, a password reset link has been sent.";
+
     const user = await User.findOne({ email });
-    if (!user) {
-      return res
-        .status(404)
-        .json({ success: false, message: "No account found with that email" });
+
+    if (user) {
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      user.resetToken = resetToken;
+      user.resetTokenExpiry = Date.now() + 30 * 60 * 1000;
+      await user.save();
+
+      await sendPasswordResetEmail({
+        to: user.email,
+        resetToken,
+      });
     }
 
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    user.resetToken = resetToken;
-    user.resetTokenExpiry = Date.now() + 30 * 60 * 1000;
-    await user.save();
-
-    const resetLink = await sendPasswordResetEmail({
-      to: user.email,
-      resetToken,
-    });
-
-    res.json({
+    return res.status(200).json({
       success: true,
-      message: "Password reset link sent to your email.",
-      resetLink,
+      message: GENERIC_RESET_MESSAGE,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: err.message || "Failed to send password reset email",
+      message: err.message || "Failed to process password reset request",
     });
   }
-}
-export const resetPassword =  async (req, res) => {
+};
+export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
 
