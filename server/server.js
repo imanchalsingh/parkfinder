@@ -44,8 +44,15 @@ if (missingEnvVars.length > 0) {
   process.exit(1);
 }
 
+import helmet from "helmet";
+
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for express-rate-limit to work correctly behind reverse proxies
+
+// Add Helmet for HTTP header security
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources if needed by frontend
+}));
 
 const PORT = process.env.PORT || 5000;
 app.use(
