@@ -21,7 +21,7 @@ import { connectRedis } from "./utils/cache.js";
 import "./jobs/bookingExpiry.js";
 import { setupLogger } from "./utils/logger.js";
 import { requestIdMiddleware } from "./middleware/requestId.js";
-import corsMiddleware from "./middleware/corsMiddleware.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 // Initialize global logger override
 setupLogger();
