@@ -14,6 +14,7 @@ import {
   Key,
   Crown,
   UserPlus,
+  FileText,
 } from "lucide-react";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
 
@@ -119,12 +120,19 @@ export default function SignupPage() {
     adminSecret: "",
   });
 
+  const [consents, setConsents] = useState({
+    terms: false,
+    privacy: false,
+  });
+
   const [errors, setErrors] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     adminSecret: "",
+    terms: "",
+    privacy: "",
   });
 
   const [msg, setMsg] = useState("");
@@ -149,6 +157,8 @@ export default function SignupPage() {
       password: "",
       confirmPassword: "",
       adminSecret: "",
+      terms: "",
+      privacy: "",
     };
     let isValid = true;
 
@@ -198,6 +208,18 @@ export default function SignupPage() {
       isValid = false;
     }
 
+    // Terms of Service consent validation
+    if (!consents.terms) {
+      newErrors.terms = "You must accept the Terms of Service to continue";
+      isValid = false;
+    }
+
+    // Privacy Policy consent validation
+    if (!consents.privacy) {
+      newErrors.privacy = "You must accept the Privacy Policy to continue";
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -219,6 +241,13 @@ export default function SignupPage() {
   const handleRoleChange = (role: string) => {
     setForm((prev) => ({ ...prev, role, adminSecret: "" }));
     setErrors((prev) => ({ ...prev, adminSecret: "" }));
+  };
+
+  const handleConsentChange = (field: keyof typeof consents, checked: boolean) => {
+    setConsents((prev) => ({ ...prev, [field]: checked }));
+    if (checked) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -600,27 +629,148 @@ export default function SignupPage() {
               </div>
             )}
 
-            {/* Terms and Conditions */}
-            <div className="flex items-start">
-              <input
-                type="checkbox"
-                id="terms"
-                required
-                className={`w-4 h-4 mt-1 rounded ${themeClasses.inputBg} border ${themeClasses.inputBorder} text-[#1B42CB] focus:ring-[#1B42CB]/20 focus:ring-2`}
-              />
-              <label
-                htmlFor="terms"
-                className={`ml-2 text-sm ${themeClasses.textSecondary}`}
+            {/* Policy Consent Section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <FileText className={`w-4 h-4 ${themeClasses.iconColor}`} />
+                <span className={`text-sm font-medium ${themeClasses.text}`}>
+                  Policy Agreements
+                </span>
+              </div>
+
+              {/* Terms of Service Checkbox */}
+              <div
+                className={`p-3 rounded-xl border transition-all duration-200 ${
+                  errors.terms
+                    ? "border-red-500/50 bg-red-500/5"
+                    : consents.terms
+                    ? "border-green-500/40 bg-green-500/5"
+                    : themeClasses.inputBorder + " " + themeClasses.inputBg
+                }`}
               >
-                I agree to the{" "}
-                <Link to="/terms" className={themeClasses.iconColor}>
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" className={themeClasses.iconColor}>
-                  Privacy Policy
-                </Link>
-              </label>
+                <div className="flex items-start gap-3">
+                  <div className="relative mt-0.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      id="terms-consent"
+                      checked={consents.terms}
+                      onChange={(e) =>
+                        handleConsentChange("terms", e.target.checked)
+                      }
+                      aria-describedby={errors.terms ? "terms-error" : undefined}
+                      aria-invalid={!!errors.terms}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="terms-consent"
+                      className={`flex w-5 h-5 rounded-md border-2 cursor-pointer items-center justify-center transition-all duration-200 ${
+                        consents.terms
+                          ? "bg-[#1B42CB] border-[#1B42CB]"
+                          : errors.terms
+                          ? "border-red-500 bg-transparent"
+                          : "border-gray-400 bg-transparent hover:border-[#1B42CB]"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {consents.terms && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </label>
+                  </div>
+                  <label
+                    htmlFor="terms-consent"
+                    className={`text-sm leading-relaxed cursor-pointer ${themeClasses.textSecondary}`}
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${themeClasses.iconColor} font-medium underline underline-offset-2 hover:opacity-80 transition-opacity`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms of Service
+                    </Link>
+                  </label>
+                </div>
+                {errors.terms && (
+                  <p
+                    id="terms-error"
+                    role="alert"
+                    className={`mt-2 text-xs ${themeClasses.errorText} flex items-center gap-1`}
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {errors.terms}
+                  </p>
+                )}
+              </div>
+
+              {/* Privacy Policy Checkbox */}
+              <div
+                className={`p-3 rounded-xl border transition-all duration-200 ${
+                  errors.privacy
+                    ? "border-red-500/50 bg-red-500/5"
+                    : consents.privacy
+                    ? "border-green-500/40 bg-green-500/5"
+                    : themeClasses.inputBorder + " " + themeClasses.inputBg
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative mt-0.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      id="privacy-consent"
+                      checked={consents.privacy}
+                      onChange={(e) =>
+                        handleConsentChange("privacy", e.target.checked)
+                      }
+                      aria-describedby={errors.privacy ? "privacy-error" : undefined}
+                      aria-invalid={!!errors.privacy}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="privacy-consent"
+                      className={`flex w-5 h-5 rounded-md border-2 cursor-pointer items-center justify-center transition-all duration-200 ${
+                        consents.privacy
+                          ? "bg-[#1B42CB] border-[#1B42CB]"
+                          : errors.privacy
+                          ? "border-red-500 bg-transparent"
+                          : "border-gray-400 bg-transparent hover:border-[#1B42CB]"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {consents.privacy && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </label>
+                  </div>
+                  <label
+                    htmlFor="privacy-consent"
+                    className={`text-sm leading-relaxed cursor-pointer ${themeClasses.textSecondary}`}
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${themeClasses.iconColor} font-medium underline underline-offset-2 hover:opacity-80 transition-opacity`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+                {errors.privacy && (
+                  <p
+                    id="privacy-error"
+                    role="alert"
+                    className={`mt-2 text-xs ${themeClasses.errorText} flex items-center gap-1`}
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {errors.privacy}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Submit Button */}
