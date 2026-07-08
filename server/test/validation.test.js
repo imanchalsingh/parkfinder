@@ -3,6 +3,7 @@ import express from 'express';
 import request from 'supertest';
 import { validateRequest } from '../middleware/validate.js';
 import { signupSchema } from '../validators/auth.validator.js';
+import { errorHandler } from '../middleware/errorHandler.js';
 
 describe('Validation Middleware', () => {
   const app = express();
@@ -11,6 +12,8 @@ describe('Validation Middleware', () => {
   app.post('/test-signup', validateRequest(signupSchema), (req, res) => {
     res.status(200).json({ success: true, data: req.body });
   });
+
+  app.use(errorHandler);
 
   it('should pass validation for a valid payload', async () => {
     const validPayload = {
@@ -40,10 +43,10 @@ describe('Validation Middleware', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.success).toBe(false);
-    expect(response.body.message).toBe('Validation failed');
-    expect(response.body.errors).toBeInstanceOf(Array);
+    expect(response.body.error.code).toBe('VALIDATION_ERROR');
+    expect(response.body.error.details).toBeInstanceOf(Array);
     
-    const fields = response.body.errors.map(e => e.field);
+    const fields = response.body.error.details.map(e => e.field);
     expect(fields).toContain('body.email');
     expect(fields).toContain('body.password');
   });
@@ -60,7 +63,7 @@ describe('Validation Middleware', () => {
       .send(invalidPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.errors[0].field).toBe('body.email');
+    expect(response.body.error.details[0].field).toBe('body.email');
   });
   
   it('should fail validation for short passwords', async () => {
@@ -75,6 +78,6 @@ describe('Validation Middleware', () => {
       .send(invalidPayload);
 
     expect(response.status).toBe(400);
-    expect(response.body.errors[0].field).toBe('body.password');
+    expect(response.body.error.details[0].field).toBe('body.password');
   });
 });

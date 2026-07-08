@@ -45,19 +45,18 @@ if (missingEnvVars.length > 0) {
   process.exit(1);
 }
 
+import helmet from "helmet";
+
 const app = express();
 app.set('trust proxy', 1); // Trust first proxy for express-rate-limit to work correctly behind reverse proxies
 
+// Add Helmet for HTTP header security
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }, // Allow cross-origin resources if needed by frontend
+}));
+
 const PORT = process.env.PORT || 5000;
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["Authorization"],
-  }),
-);
+app.use(corsMiddleware);
 // Middleware to parse JSON body (if needed later)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -117,6 +116,8 @@ app.use("/api/predictions", predictionRoute);
 app.get("/", (req, res) => {
   res.send("Welcome to the Parking Slot API");
 });
+
+import { errorHandler } from "./middleware/errorHandler.js";
 
 // Global Error Handler
 app.use(errorHandler);
