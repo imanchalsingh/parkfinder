@@ -117,14 +117,10 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Parking Slot API");
 });
 
+import { errorHandler } from "./middleware/errorHandler.js";
+
 // Global Error Handler
-app.use((err, req, res, next) => {
-  console.error("Internal Server Error:", err);
-  res.status(500).json({
-    success: false,
-    message: "Internal Server Error",
-  });
-});
+app.use(errorHandler);
 
 // Start Server
 if (process.env.NODE_ENV !== 'test') {
