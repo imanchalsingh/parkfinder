@@ -27,6 +27,7 @@ import {
   RefreshCw,
   BarChart3,
 } from "lucide-react";
+import LocationAutocomplete from "./LocationAutocomplete";
 
 interface ParkingSlot {
   _id: string;
@@ -1378,18 +1379,17 @@ export default function AdminPanel() {
                     <MapPin className="w-4 h-4 text-[#FF2F6C]" />
                     Location *
                   </label>
-                  <input
-                    type="text"
-                    required
+                  <LocationAutocomplete
                     value={slotForm.location || ""}
-                    onChange={(e) =>
+                    onChange={(val) =>
                       setSlotForm({
                         ...slotForm,
-                        location: e.target.value,
+                        location: val,
                       })
                     }
-                    className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
                     placeholder="Enter location"
+                    className={`w-full pl-12 pr-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
+                    icon={<MapPin className="w-5 h-5 text-[#FF2F6C]" />}
                   />
                 </div>
                 <div className="group md:col-span-2">

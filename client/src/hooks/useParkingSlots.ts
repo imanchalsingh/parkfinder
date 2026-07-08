@@ -18,7 +18,6 @@ export interface ParkingSlot {
   capacity: number;
   distance: string;
   rating: number;
-  description?: string;
   coordinates?: {
     lat: number;
     lng: number;
@@ -29,7 +28,6 @@ export interface ParkingSlot {
     managerName?: string;
   };
   images?: string[];
-  description?: string;
 }
 
 export interface ApiResponse {
