@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import * as Icons from "lucide-react";
 import { useThemeClasses } from "../hooks/useThemeClasses";
+import { useUnsavedChanges } from "../hooks/useUnsavedChanges";
 
 const ContactPage: React.FC = () => {
   const themeClasses = useThemeClasses();
@@ -12,6 +13,9 @@ const ContactPage: React.FC = () => {
   });
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+
+  const isDirty = formData.name !== "" || formData.email !== "" || formData.subject !== "" || formData.message !== "";
+  useUnsavedChanges(isDirty, "You have an unsaved message. Are you sure you want to leave?");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;

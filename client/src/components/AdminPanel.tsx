@@ -28,6 +28,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import LocationAutocomplete from "./LocationAutocomplete";
+import { useUnsavedChanges } from "../hooks/useUnsavedChanges";
 
 interface ParkingSlot {
   _id: string;
@@ -96,6 +97,9 @@ export default function AdminPanel() {
     id: string;
     name: string;
   } | null>(null);
+  
+  const [isDirty, setIsDirty] = useState(false);
+  useUnsavedChanges(isDirty, "You have unsaved changes in the Parking Slot form. Are you sure you want to leave?");
 
   const { token } = useAuth();
 
@@ -344,6 +348,7 @@ export default function AdminPanel() {
         setSlotForm({});
         setEditingSlotId(null);
         setShowSlotForm(false);
+        setIsDirty(false); // Reset dirty state on success
         fetchParkingSlots();
       } else {
         setError(data.message || "Operation failed");
@@ -1344,6 +1349,7 @@ export default function AdminPanel() {
                     setShowSlotForm(false);
                     setSlotForm({});
                     setEditingSlotId(null);
+                    setIsDirty(false);
                   }}
                   className={`w-10 h-10 rounded-xl ${currentTheme.cardBg} border ${currentTheme.border} flex items-center justify-center ${currentTheme.text} hover:bg-gradient-to-r hover:from-[#FF2F6C] hover:to-[#1B42CB] hover:text-white transition-all duration-300 group`}
                 >
@@ -1365,9 +1371,10 @@ export default function AdminPanel() {
                     type="text"
                     required
                     value={slotForm.name || ""}
-                    onChange={(e) =>
-                      setSlotForm({ ...slotForm, name: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setSlotForm({ ...slotForm, name: e.target.value });
+                      setIsDirty(true);
+                    }}
                     className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
                     placeholder="Enter slot name"
                   />
@@ -1381,12 +1388,13 @@ export default function AdminPanel() {
                   </label>
                   <LocationAutocomplete
                     value={slotForm.location || ""}
-                    onChange={(val) =>
+                    onChange={(val) => {
                       setSlotForm({
                         ...slotForm,
                         location: val,
-                      })
-                    }
+                      });
+                      setIsDirty(true);
+                    }}
                     placeholder="Enter location"
                     className={`w-full pl-12 pr-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
                     icon={<MapPin className="w-5 h-5 text-[#FF2F6C]" />}
@@ -1400,12 +1408,13 @@ export default function AdminPanel() {
                   </label>
                   <textarea
                     value={slotForm.description || ""}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setSlotForm({
                         ...slotForm,
                         description: e.target.value,
-                      })
-                    }
+                      });
+                      setIsDirty(true);
+                    }}
                     rows={4}
                     className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300 font-mono text-sm`}
                     placeholder="Enter description using Markdown (e.g. **bold**, - list items)"
@@ -1423,12 +1432,13 @@ export default function AdminPanel() {
                     min="0"
                     step="0.01"
                     value={slotForm.pricePerHour || ""}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setSlotForm({
                         ...slotForm,
                         pricePerHour: Number(e.target.value),
-                      })
-                    }
+                      });
+                      setIsDirty(true);
+                    }}
                     className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
                     placeholder="Enter price"
                   />
@@ -1441,9 +1451,10 @@ export default function AdminPanel() {
                   </label>
                   <select
                     value={slotForm.status || "available"}
-                    onChange={(e) =>
-                      setSlotForm({ ...slotForm, status: e.target.value })
-                    }
+                    onChange={(e) => {
+                      setSlotForm({ ...slotForm, status: e.target.value });
+                      setIsDirty(true);
+                    }}
                     className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
                   >
                     <option value="available">Available</option>
@@ -1462,12 +1473,13 @@ export default function AdminPanel() {
                     required
                     min="1"
                     value={slotForm.capacity || ""}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setSlotForm({
                         ...slotForm,
                         capacity: Number(e.target.value),
-                      })
-                    }
+                      });
+                      setIsDirty(true);
+                    }}
                     className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
                     placeholder="Enter total capacity"
                   />
@@ -1483,12 +1495,13 @@ export default function AdminPanel() {
                     required
                     min="0"
                     value={slotForm.availableSlots || ""}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setSlotForm({
                         ...slotForm,
                         availableSlots: Number(e.target.value),
-                      })
-                    }
+                      });
+                      setIsDirty(true);
+                    }}
                     className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
                     placeholder="Enter available slots"
                   />
@@ -1503,12 +1516,13 @@ export default function AdminPanel() {
                 <textarea
                   rows={3}
                   value={(slotForm.images ?? []).join("\n")}
-                  onChange={(e) =>
+                  onChange={(e) => {
                     setSlotForm({
                       ...slotForm,
                       images: e.target.value.split("\n").map((u) => u.trim()).filter(Boolean),
-                    })
-                  }
+                    });
+                    setIsDirty(true);
+                  }}
                   className={`w-full px-4 py-3 ${currentTheme.inputBg} border ${currentTheme.inputBorder} rounded-xl ${currentTheme.text} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300 resize-none`}
                   placeholder={"https://example.com/photo1.jpg\nhttps://example.com/photo2.jpg"}
                 />
@@ -1522,6 +1536,7 @@ export default function AdminPanel() {
                     setShowSlotForm(false);
                     setSlotForm({});
                     setEditingSlotId(null);
+                    setIsDirty(false);
                   }}
                   className={`px-6 py-3 ${currentTheme.cardBg} border ${currentTheme.border} ${currentTheme.text} font-semibold rounded-xl ${currentTheme.hover} transition-all duration-300`}
                 >
