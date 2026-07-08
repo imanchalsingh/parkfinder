@@ -21,6 +21,7 @@ import { connectRedis } from "./utils/cache.js";
 import "./jobs/bookingExpiry.js";
 import { setupLogger } from "./utils/logger.js";
 import { requestIdMiddleware } from "./middleware/requestId.js";
+import errorHandler from "./middleware/errorHandler.js";
 
 // Initialize global logger override
 setupLogger();
@@ -55,15 +56,7 @@ app.use(helmet({
 }));
 
 const PORT = process.env.PORT || 5000;
-app.use(
-  cors({
-    origin: true,
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
-    exposedHeaders: ["Authorization"],
-  }),
-);
+app.use(corsMiddleware);
 // Middleware to parse JSON body (if needed later)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
