@@ -33,7 +33,7 @@ const fillValidForm = async (user: ReturnType<typeof userEvent.setup>) => {
 
 beforeEach(() => {
   vi.restoreAllMocks();
-  global.fetch = vi.fn().mockResolvedValue({
+  globalThis.fetch = vi.fn().mockResolvedValue({
     json: async () => ({
       success: true,
       user: { _id: "1", name: "Jane Doe", email: "jane@example.com", role: "user" },
@@ -225,7 +225,7 @@ describe("SignupPage – Validation: missing consent", () => {
     await user.click(screen.getByRole("button", { name: /create .* account/i }));
 
     await waitFor(() => {
-      expect(global.fetch).not.toHaveBeenCalled();
+      expect(globalThis.fetch).not.toHaveBeenCalled();
     });
   });
 
@@ -256,7 +256,7 @@ describe("SignupPage – Successful Registration Flow", () => {
     await fillValidForm(user);
     await user.click(screen.getByRole("button", { name: /create .* account/i }));
 
-    await waitFor(() => expect(global.fetch).not.toHaveBeenCalled());
+    await waitFor(() => expect(globalThis.fetch).not.toHaveBeenCalled());
   });
 
   test("submits successfully when all fields valid AND both consents checked", async () => {
@@ -268,7 +268,7 @@ describe("SignupPage – Successful Registration Flow", () => {
     await user.click(screen.getByRole("checkbox", { name: /i agree to the privacy policy/i }));
     await user.click(screen.getByRole("button", { name: /create .* account/i }));
 
-    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalledTimes(1));
     expect(await screen.findByText(/account created successfully/i)).toBeInTheDocument();
   });
 
@@ -281,9 +281,9 @@ describe("SignupPage – Successful Registration Flow", () => {
     await user.click(screen.getByRole("checkbox", { name: /i agree to the privacy policy/i }));
     await user.click(screen.getByRole("button", { name: /create .* account/i }));
 
-    await waitFor(() => expect(global.fetch).toHaveBeenCalled());
+    await waitFor(() => expect(globalThis.fetch).toHaveBeenCalled());
 
-    const [, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
+    const [, init] = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls[0];
     const body = JSON.parse(init.body as string);
 
     expect(body).toMatchObject({

@@ -20,7 +20,7 @@ vi.mock('react-hot-toast', () => ({
 }));
 
 // Mock fetch
-global.fetch = vi.fn();
+globalThis.fetch = vi.fn();
 
 const renderWithTheme = (ui: React.ReactElement) => {
   return render(<ThemeProvider>{ui}</ThemeProvider>);
@@ -86,7 +86,7 @@ describe('BookingModal', () => {
   });
 
   it('handles booking submission', async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    (globalThis.fetch as any).mockResolvedValueOnce({
       json: async () => ({ success: true }),
     });
 
@@ -98,7 +98,7 @@ describe('BookingModal', () => {
     const payButton = screen.getByRole('button', { name: /Pay ₹100/i });
     fireEvent.click(payButton);
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/bookings/book', expect.objectContaining({
+    expect(globalThis.fetch).toHaveBeenCalledWith('/api/bookings/book', expect.objectContaining({
       method: 'POST',
       body: JSON.stringify({
         parkingId: mockSlot._id,
