@@ -1,5 +1,7 @@
 import Booking from "../models/Booking.js";
 import Parking from "../models/Parking.js";
+import eventBus from "../events/eventBus.js";
+import { EVENTS } from "../events/constants.js";
 
 // Get current user's bookings
 
@@ -117,6 +119,8 @@ export const createBooking = async (req, res) => {
 
     console.log("✅ Booking created successfully:", booking._id);
 
+    eventBus.emit(EVENTS.BOOKING_CREATED, { booking: populatedBooking, user: req.user });
+
     res.status(201).json({
       success: true,
       message: "Booking created successfully",
@@ -179,6 +183,8 @@ export const cancelBooking = async (req, res) => {
     await booking.save();
 
     console.log("✅ Booking cancelled:", bookingId);
+
+    eventBus.emit(EVENTS.BOOKING_CANCELLED, { booking });
 
     res.json({
       success: true,
@@ -410,6 +416,8 @@ export const extendBooking = async (req, res) => {
     await booking.save();
 
     const updated = await Booking.findById(bookingId).populate("parkingId");
+
+    eventBus.emit(EVENTS.BOOKING_EXTENDED, { booking: updated, additionalHours: Number(additionalHours) });
 
     res.json({
       success: true,

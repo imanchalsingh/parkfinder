@@ -26,6 +26,9 @@ import errorHandler from "./middleware/errorHandler.js";
 // Initialize global logger override
 setupLogger();
 
+import { initializeEventSubscribers } from "./events/index.js";
+initializeEventSubscribers();
+
 dotenv.config({ path: ".env" });
 
 // Connect to Redis
