@@ -6,6 +6,7 @@ import type { ParkingSlot } from "../hooks/useParkingSlots";
 import { useAuth } from "../context/AuthContext";
 import { useThemeClasses } from "../hooks/useThemeClasses";
 import { toast } from "react-hot-toast";
+import { syncFetch } from "../utils/syncManager";
 
 interface BookingModalProps {
   selectedSlot: ParkingSlot | null;
@@ -33,7 +34,7 @@ export const BookingModal: React.FC<BookingModalProps> = ({
     setIsSubmitting(true);
     try {
       const totalPrice = selectedSlot.pricePerHour * duration;
-      const res = await fetch(`/api/bookings/book`, {
+      const res = await syncFetch(`/api/bookings/book`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

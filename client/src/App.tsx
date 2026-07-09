@@ -1,8 +1,6 @@
 import React, { Suspense } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
-import ParkingSlotPage from "./components/ParkingSlotPage";
-import BookedSlotsPage from "./components/BookedSlotsPage";
+import { Toaster, toast } from "react-hot-toast";
 import "./App.css";
 
 // Eagerly loaded components (essential/layout)
@@ -39,6 +37,28 @@ const PageLoader = () => (
 );
 
 function App() {
+  React.useEffect(() => {
+    const handleOnline = async () => {
+      toast.success("You are back online. Synchronizing data...");
+      if (!('SyncManager' in window)) {
+        const { processSyncQueue } = await import('./utils/syncManager');
+        await processSyncQueue();
+      }
+    };
+    
+    const handleOffline = () => {
+      toast.error("You are offline. Actions will be synced when you reconnect.", { icon: '📡' });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
   return (
     <Router>
       <Toaster 

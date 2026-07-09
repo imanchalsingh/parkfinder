@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-hot-toast";
+import { syncFetch } from "../utils/syncManager";
 
 export interface Favorite {
   _id: string;
@@ -50,7 +51,7 @@ export const useFavorites = () => {
             : [...prev, locationId]
         );
 
-        const res = await fetch(`/api/favorites/${locationId}`, {
+        const res = await syncFetch(`/api/favorites/${locationId}`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -65,7 +66,7 @@ export const useFavorites = () => {
           console.error("Failed to toggle favorite:", data.message);
           toast.error("Failed to update favorites");
         } else {
-          toast.success(prev.includes(locationId) ? "Removed from favorites" : "Added to favorites");
+          toast.success("Favorites updated successfully");
         }
       } catch (err) {
         console.error("Error toggling favorite:", err);

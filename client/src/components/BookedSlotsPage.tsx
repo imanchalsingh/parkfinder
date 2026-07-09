@@ -1124,7 +1124,7 @@ const BookedSlotsPage: React.FC = () => {
                             <button
                               className={`w-full px-4 py-2 ${themeClasses.cardBg} border ${themeClasses.border} ${themeClasses.text} rounded-lg hover:bg-[#1B42CB]/10 transition-colors text-sm flex items-center justify-center gap-2`}
                               onClick={() =>
-                                toast.info("Directions feature coming soon!")
+                                toast("Directions feature coming soon!")
                               }
                             >
                               <Icons.MapPin className="w-4 h-4" />
