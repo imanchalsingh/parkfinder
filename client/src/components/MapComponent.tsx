@@ -7,6 +7,7 @@ import { useRouteNavigation } from "../hooks/useRouteNavigation";
 import { Navigation, Loader2, X } from "lucide-react";
 import { getUserLocation } from "../utils/geolocation";
 import { toast } from "react-hot-toast";
+import MarkerClusterGroup from "react-leaflet-cluster";
 
 // Fix for default icons
 delete (L.Icon.Default.prototype as L.Icon.Default & { _getIconUrl?: unknown })._getIconUrl;
@@ -20,7 +21,7 @@ L.Icon.Default.mergeOptions({
 });
 
 // Custom parking icon
-const createParkingIcon = (status: string) => {
+const createParkingIcon = (status: string, availableSlots: number = 0) => {
   const statusLower = (status || "unknown").toLowerCase();
   return new L.Icon({
     iconUrl:
@@ -30,7 +31,7 @@ const createParkingIcon = (status: string) => {
     iconSize: [32, 32],
     iconAnchor: [16, 32],
     popupAnchor: [0, -32],
-    className: "parking-marker",
+    className: `parking-marker status-${statusLower} avail-${availableSlots}`,
   });
 };
 
@@ -41,6 +42,61 @@ const userIcon = new L.Icon({
   iconAnchor: [14, 28],
   popupAnchor: [0, -28],
 });
+
+// Custom Cluster Icon
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createClusterCustomIcon = (cluster: any) => {
+  const count = cluster.getChildCount();
+  const markers = cluster.getAllChildMarkers();
+  
+  let totalAvailable = 0;
+  let hasAvailable = false;
+  
+  markers.forEach((m: any) => {
+    const className = m.options.icon?.options?.className || '';
+    if (className.includes('status-available')) hasAvailable = true;
+    const match = className.match(/avail-(\d+)/);
+    if (match) {
+      totalAvailable += parseInt(match[1], 10);
+    }
+  });
+  
+  // Dynamic sizing
+  let size = 48;
+  let textClass = "text-sm";
+  if (count > 10 && count <= 50) {
+    size = 56;
+    textClass = "text-base";
+  } else if (count > 50) {
+    size = 64;
+    textClass = "text-lg";
+  }
+
+  // Dynamic gradient based on availability
+  // Green if there are available slots, red if completely full
+  const gradientClass = hasAvailable 
+    ? "from-[#10b981] to-[#059669]" 
+    : "from-[#ef4444] to-[#b91c1c]";
+    
+  const pingColor = hasAvailable ? "bg-[#10b981]" : "bg-[#ef4444]";
+  const shadowColor = hasAvailable ? "rgba(16,185,129,0.6)" : "rgba(239,68,68,0.6)";
+
+  return new L.DivIcon({
+    html: `
+      <div class="relative flex items-center justify-center w-full h-full group cursor-pointer transition-transform duration-300 hover:scale-110" title="${totalAvailable} slots available here">
+        <!-- Outer pulsating glow -->
+        <div class="absolute inset-0 rounded-full ${pingColor} animate-ping opacity-25 group-hover:opacity-40"></div>
+        <!-- Inner glowing container with premium gradient -->
+        <div class="relative z-10 flex flex-col items-center justify-center w-full h-full rounded-full bg-linear-to-br ${gradientClass} text-white shadow-[0_4px_20px_${shadowColor}] border-[3px] border-white/80 backdrop-blur-md transition-all">
+          <span class="${textClass} font-bold drop-shadow-md tracking-tight leading-none">${count}</span>
+          ${totalAvailable > 0 ? `<span class="text-[9px] font-semibold opacity-90 mt-0.5 leading-none">${totalAvailable} left</span>` : '<span class="text-[9px] font-semibold opacity-90 mt-0.5 leading-none">Full</span>'}
+        </div>
+      </div>
+    `,
+    className: "custom-cluster-marker bg-transparent",
+    iconSize: new L.Point(size, size),
+  });
+};
 
 interface ParkingSlot {
   _id?: string;
@@ -221,6 +277,21 @@ const MapComponent: React.FC<MapComponentProps> = ({
                 </Marker>
 
                 {/* Parking slots markers */}
+                <MarkerClusterGroup 
+                  chunkedLoading
+                  iconCreateFunction={createClusterCustomIcon}
+                  maxClusterRadius={50}
+                  spiderfyOnMaxZoom={true}
+                  disableClusteringAtZoom={16}
+                  showCoverageOnHover={true}
+                  polygonOptions={{
+                    fillColor: '#1B42CB',
+                    color: '#FF2F6C',
+                    weight: 2,
+                    opacity: 0.6,
+                    fillOpacity: 0.15
+                  }}
+                >
                 {validParkingSlots.map((slot: ParkingSlot) => {
                   const status = slot.status || "unknown";
                   const statusFormatted = status.charAt(0).toUpperCase() + status.slice(1);
@@ -229,7 +300,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     <Marker
                       key={slot._id || slot.name}
                       position={[slot.coordinates.lat, slot.coordinates.lng]}
-                      icon={createParkingIcon(status)}
+                      icon={createParkingIcon(status, slot.availableSlots || 0)}
                     >
                       <Popup>
                         <div className="p-2 min-w-[200px] text-gray-800">
@@ -312,6 +383,7 @@ const MapComponent: React.FC<MapComponentProps> = ({
                     </Marker>
                   );
                 })}
+                </MarkerClusterGroup>
 
                 {/* Route drawing */}
                 {routeCoords.length > 0 && (
