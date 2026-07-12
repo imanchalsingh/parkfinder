@@ -1,1 +1,12 @@
 node_modules
+
+# Docker local overrides
+docker-compose.override.yml
+
+# Environment files (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+dist
