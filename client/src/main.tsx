@@ -6,6 +6,20 @@ import { ThemeProvider } from './context/ThemeContext.tsx'
 import { PWAProvider } from './context/PWAContext.tsx'
 import "./i18n";
 
+// Register Service Worker for offline background sync
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then(
+      (registration) => {
+        console.log('SW registered with scope:', registration.scope);
+      },
+      (err) => {
+        console.error('SW registration failed:', err);
+      }
+    );
+  });
+}
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <AuthProvider>

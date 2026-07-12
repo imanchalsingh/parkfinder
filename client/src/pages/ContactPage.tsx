@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import * as Icons from "lucide-react";
 import { useThemeClasses } from "../hooks/useThemeClasses";
 import { useUnsavedChanges } from "../hooks/useUnsavedChanges";
+import { syncFetch } from "../utils/syncManager";
 
 const ContactPage: React.FC = () => {
   const themeClasses = useThemeClasses();
@@ -28,7 +29,7 @@ const ContactPage: React.FC = () => {
     setErrorMessage("");
 
     try {
-      const res = await fetch("/api/contact", {
+      const res = await syncFetch("/api/contact", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
