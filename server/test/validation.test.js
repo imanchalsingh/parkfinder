@@ -3,7 +3,7 @@ import express from 'express';
 import request from 'supertest';
 import { validateRequest } from '../middleware/validate.js';
 import { signupSchema } from '../validators/auth.validator.js';
-import { errorHandler } from '../middleware/errorHandler.js';
+import errorHandler from '../middleware/errorHandler.js';
 
 describe('Validation Middleware', () => {
   const app = express();
