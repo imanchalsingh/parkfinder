@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Lock, ArrowLeft, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShieldCheck } from "lucide-react";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
+import PasswordInput from "../components/PasswordInput";
 
 export default function ResetPasswordPage() {
   const { token = "" } = useParams();
@@ -80,18 +81,13 @@ export default function ResetPasswordPage() {
           >
             New Password
           </label>
-          <div className="relative">
-            <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#1B42CB]" />
-            <input
-              id="new-password"
-              type="password"
-              required
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="w-full rounded-xl border border-[#1B42CB]/30 bg-[#191919]/50 py-3 pl-12 pr-4 text-[#EEECF6] placeholder:text-[#EEECF6]/40 focus:border-[#1B42CB] focus:outline-none focus:ring-2 focus:ring-[#1B42CB]/20"
-              placeholder="Enter a new password"
-            />
-          </div>
+          <PasswordInput
+            id="new-password"
+            required
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            placeholder="Enter a new password"
+          />
           <PasswordStrengthMeter password={password} />
 
           <label
@@ -100,18 +96,13 @@ export default function ResetPasswordPage() {
           >
             Confirm Password
           </label>
-          <div className="relative">
-            <Lock className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-[#1B42CB]" />
-            <input
-              id="confirm-password"
-              type="password"
-              required
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              className="w-full rounded-xl border border-[#1B42CB]/30 bg-[#191919]/50 py-3 pl-12 pr-4 text-[#EEECF6] placeholder:text-[#EEECF6]/40 focus:border-[#1B42CB] focus:outline-none focus:ring-2 focus:ring-[#1B42CB]/20"
-              placeholder="Confirm your new password"
-            />
-          </div>
+          <PasswordInput
+            id="confirm-password"
+            required
+            value={confirmPassword}
+            onChange={(event) => setConfirmPassword(event.target.value)}
+            placeholder="Confirm your new password"
+          />
 
           <button
             type="submit"
