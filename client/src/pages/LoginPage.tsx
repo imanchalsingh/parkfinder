@@ -2,8 +2,9 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { useTheme } from "../context/ThemeContext";
-import { Eye, EyeOff, Mail, Lock, Car, AlertCircle, LogIn, ShieldCheck } from "lucide-react";
+import { Mail, Lock, Car, AlertCircle, LogIn, ShieldCheck } from "lucide-react";
 import { v4 as uuidv4 } from "uuid";
+import PasswordInput from "../components/PasswordInput";
 
 const THEME_CLASSES = {
   light: {
@@ -54,7 +55,6 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({ email: "", password: "" });
   const [msg, setMsg] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   // 2FA states
@@ -312,39 +312,15 @@ export default function LoginPage() {
                   Forgot password?
                 </Link>
               </div>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Lock className={`w-5 h-5 ${themeClasses.iconColor}`} />
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
-                    errors.password
-                      ? "border-red-500/50"
-                      : themeClasses.inputBorder
-                  } rounded-xl ${themeClasses.text} ${themeClasses.placeholder} focus:outline-none focus:border-[#1B42CB] focus:ring-2 focus:ring-[#1B42CB]/20 transition-all duration-300`}
-                  placeholder="Enter your password"
-                  value={form.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
-                  onBlur={() => validateForm()}
-                />
-                <button
-                  type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:${themeClasses.text} transition-colors`}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                required
+                placeholder="Enter your password"
+                value={form.password}
+                onChange={(e) => handleInputChange("password", e.target.value)}
+                onBlur={() => validateForm()}
+                error={!!errors.password}
+              />
               {errors.password && (
                 <p
                   className={`mt-2 text-sm ${themeClasses.errorText} flex items-center gap-1`}

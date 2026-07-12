@@ -3,8 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import {
-  Eye,
-  EyeOff,
   Mail,
   Lock,
   User,
@@ -14,8 +12,10 @@ import {
   Key,
   Crown,
   UserPlus,
+  FileText,
 } from "lucide-react";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
+import PasswordInput from "../components/PasswordInput";
 
 const THEME_CLASSES = {
   light: {
@@ -119,18 +119,22 @@ export default function SignupPage() {
     adminSecret: "",
   });
 
+  const [consents, setConsents] = useState({
+    terms: false,
+    privacy: false,
+  });
+
   const [errors, setErrors] = useState({
     name: "",
     email: "",
     password: "",
     confirmPassword: "",
     adminSecret: "",
+    terms: "",
+    privacy: "",
   });
 
   const [msg, setMsg] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -149,6 +153,8 @@ export default function SignupPage() {
       password: "",
       confirmPassword: "",
       adminSecret: "",
+      terms: "",
+      privacy: "",
     };
     let isValid = true;
 
@@ -198,6 +204,18 @@ export default function SignupPage() {
       isValid = false;
     }
 
+    // Terms of Service consent validation
+    if (!consents.terms) {
+      newErrors.terms = "You must accept the Terms of Service to continue";
+      isValid = false;
+    }
+
+    // Privacy Policy consent validation
+    if (!consents.privacy) {
+      newErrors.privacy = "You must accept the Privacy Policy to continue";
+      isValid = false;
+    }
+
     setErrors(newErrors);
     return isValid;
   };
@@ -219,6 +237,13 @@ export default function SignupPage() {
   const handleRoleChange = (role: string) => {
     setForm((prev) => ({ ...prev, role, adminSecret: "" }));
     setErrors((prev) => ({ ...prev, adminSecret: "" }));
+  };
+
+  const handleConsentChange = (field: keyof typeof consents, checked: boolean) => {
+    setConsents((prev) => ({ ...prev, [field]: checked }));
+    if (checked) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -451,36 +476,14 @@ export default function SignupPage() {
               >
                 Password
               </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Lock className={`w-5 h-5 ${themeClasses.iconColor}`} />
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
-                    errors.password
-                      ? "border-red-500/50"
-                      : themeClasses.inputBorder
-                  } rounded-xl ${themeClasses.text} ${themeClasses.placeholder} focus:outline-none focus:border-[#1B42CB] focus:ring-2 focus:ring-[#1B42CB]/20 transition-all duration-300`}
-                  placeholder="Create a strong password"
-                  value={form.password}
-                  onChange={(e) => handlePasswordChange(e.target.value)}
-                />
-                <button
-                  type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:${themeClasses.text} transition-colors`}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                required
+                placeholder="Create a strong password"
+                value={form.password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                error={!!errors.password}
+              />
 
               {/* Password Strength Meter */}
               <PasswordStrengthMeter password={form.password} />
@@ -503,38 +506,15 @@ export default function SignupPage() {
               >
                 Confirm Password
               </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Lock className={`w-5 h-5 ${themeClasses.iconColor}`} />
-                </div>
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  required
-                  className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
-                    errors.confirmPassword
-                      ? "border-red-500/50"
-                      : themeClasses.inputBorder
-                  } rounded-xl ${themeClasses.text} ${themeClasses.placeholder} focus:outline-none focus:border-[#1B42CB] focus:ring-2 focus:ring-[#1B42CB]/20 transition-all duration-300`}
-                  placeholder="Confirm your password"
-                  value={form.confirmPassword}
-                  onChange={(e) =>
-                    handleInputChange("confirmPassword", e.target.value)
-                  }
-                />
-                <button
-                  type="button"
-                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:${themeClasses.text} transition-colors`}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="confirmPassword"
+                required
+                placeholder="Confirm your password"
+                value={form.confirmPassword}
+                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                error={!!errors.confirmPassword}
+                toggleLabel="confirm password"
+              />
               {errors.confirmPassword && (
                 <p
                   className={`mt-2 text-sm ${themeClasses.errorText} flex items-center gap-1`}
@@ -554,38 +534,17 @@ export default function SignupPage() {
                 >
                   Admin Secret Key
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <Key className="w-5 h-5 text-[#FF2F6C]" />
-                  </div>
-                  <input
-                    id="adminSecret"
-                    type={showAdminSecret ? "text" : "password"}
-                    required={form.role === "admin"}
-                    className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
-                      errors.adminSecret
-                        ? "border-red-500/50"
-                        : "border-[#FF2F6C]/30"
-                    } rounded-xl ${themeClasses.text} ${themeClasses.placeholder} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
-                    placeholder="Enter admin secret key"
-                    value={form.adminSecret}
-                    onChange={(e) =>
-                      handleInputChange("adminSecret", e.target.value)
-                    }
-                  />
-                  <button
-                    type="button"
-                    aria-label={showAdminSecret ? "Hide admin secret key" : "Show admin secret key"}
-                    onClick={() => setShowAdminSecret(!showAdminSecret)}
-                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:text-[#FF2F6C] transition-colors`}
-                  >
-                    {showAdminSecret ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
+                <PasswordInput
+                  id="adminSecret"
+                  required={form.role === "admin"}
+                  placeholder="Enter admin secret key"
+                  value={form.adminSecret}
+                  onChange={(e) => handleInputChange("adminSecret", e.target.value)}
+                  error={!!errors.adminSecret}
+                  icon={<Key className="w-5 h-5 text-[#FF2F6C]" />}
+                  className="!border-[#FF2F6C]/30 focus:!border-[#FF2F6C] focus:!ring-[#FF2F6C]/20"
+                  toggleLabel="admin secret key"
+                />
                 {errors.adminSecret && (
                   <p
                     className={`mt-2 text-sm ${themeClasses.errorText} flex items-center gap-1`}
@@ -600,27 +559,148 @@ export default function SignupPage() {
               </div>
             )}
 
-            {/* Terms and Conditions */}
-            <div className="flex items-start">
-              <input
-                type="checkbox"
-                id="terms"
-                required
-                className={`w-4 h-4 mt-1 rounded ${themeClasses.inputBg} border ${themeClasses.inputBorder} text-[#1B42CB] focus:ring-[#1B42CB]/20 focus:ring-2`}
-              />
-              <label
-                htmlFor="terms"
-                className={`ml-2 text-sm ${themeClasses.textSecondary}`}
+            {/* Policy Consent Section */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-1">
+                <FileText className={`w-4 h-4 ${themeClasses.iconColor}`} />
+                <span className={`text-sm font-medium ${themeClasses.text}`}>
+                  Policy Agreements
+                </span>
+              </div>
+
+              {/* Terms of Service Checkbox */}
+              <div
+                className={`p-3 rounded-xl border transition-all duration-200 ${
+                  errors.terms
+                    ? "border-red-500/50 bg-red-500/5"
+                    : consents.terms
+                    ? "border-green-500/40 bg-green-500/5"
+                    : themeClasses.inputBorder + " " + themeClasses.inputBg
+                }`}
               >
-                I agree to the{" "}
-                <Link to="/terms" className={themeClasses.iconColor}>
-                  Terms of Service
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" className={themeClasses.iconColor}>
-                  Privacy Policy
-                </Link>
-              </label>
+                <div className="flex items-start gap-3">
+                  <div className="relative mt-0.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      id="terms-consent"
+                      checked={consents.terms}
+                      onChange={(e) =>
+                        handleConsentChange("terms", e.target.checked)
+                      }
+                      aria-describedby={errors.terms ? "terms-error" : undefined}
+                      aria-invalid={!!errors.terms}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="terms-consent"
+                      className={`flex w-5 h-5 rounded-md border-2 cursor-pointer items-center justify-center transition-all duration-200 ${
+                        consents.terms
+                          ? "bg-[#1B42CB] border-[#1B42CB]"
+                          : errors.terms
+                          ? "border-red-500 bg-transparent"
+                          : "border-gray-400 bg-transparent hover:border-[#1B42CB]"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {consents.terms && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </label>
+                  </div>
+                  <label
+                    htmlFor="terms-consent"
+                    className={`text-sm leading-relaxed cursor-pointer ${themeClasses.textSecondary}`}
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${themeClasses.iconColor} font-medium underline underline-offset-2 hover:opacity-80 transition-opacity`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Terms of Service
+                    </Link>
+                  </label>
+                </div>
+                {errors.terms && (
+                  <p
+                    id="terms-error"
+                    role="alert"
+                    className={`mt-2 text-xs ${themeClasses.errorText} flex items-center gap-1`}
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {errors.terms}
+                  </p>
+                )}
+              </div>
+
+              {/* Privacy Policy Checkbox */}
+              <div
+                className={`p-3 rounded-xl border transition-all duration-200 ${
+                  errors.privacy
+                    ? "border-red-500/50 bg-red-500/5"
+                    : consents.privacy
+                    ? "border-green-500/40 bg-green-500/5"
+                    : themeClasses.inputBorder + " " + themeClasses.inputBg
+                }`}
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative mt-0.5 flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      id="privacy-consent"
+                      checked={consents.privacy}
+                      onChange={(e) =>
+                        handleConsentChange("privacy", e.target.checked)
+                      }
+                      aria-describedby={errors.privacy ? "privacy-error" : undefined}
+                      aria-invalid={!!errors.privacy}
+                      className="sr-only"
+                    />
+                    <label
+                      htmlFor="privacy-consent"
+                      className={`flex w-5 h-5 rounded-md border-2 cursor-pointer items-center justify-center transition-all duration-200 ${
+                        consents.privacy
+                          ? "bg-[#1B42CB] border-[#1B42CB]"
+                          : errors.privacy
+                          ? "border-red-500 bg-transparent"
+                          : "border-gray-400 bg-transparent hover:border-[#1B42CB]"
+                      }`}
+                      aria-hidden="true"
+                    >
+                      {consents.privacy && (
+                        <Check className="w-3 h-3 text-white" strokeWidth={3} />
+                      )}
+                    </label>
+                  </div>
+                  <label
+                    htmlFor="privacy-consent"
+                    className={`text-sm leading-relaxed cursor-pointer ${themeClasses.textSecondary}`}
+                  >
+                    I agree to the{" "}
+                    <Link
+                      to="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={`${themeClasses.iconColor} font-medium underline underline-offset-2 hover:opacity-80 transition-opacity`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+                {errors.privacy && (
+                  <p
+                    id="privacy-error"
+                    role="alert"
+                    className={`mt-2 text-xs ${themeClasses.errorText} flex items-center gap-1`}
+                  >
+                    <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                    {errors.privacy}
+                  </p>
+                )}
+              </div>
             </div>
 
             {/* Submit Button */}

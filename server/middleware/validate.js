@@ -26,22 +26,7 @@ export const validateRequest = (schema) => {
 
       next();
     } catch (error) {
-      if (error && error.name === 'ZodError') {
-        const issues = error.issues || error.errors || [];
-        const errorMessages = issues.map((err) => ({
-          field: err.path.join('.'),
-          message: err.message,
-        }));
-
-        return res.status(400).json({
-          success: false,
-          message: 'Validation failed',
-          errors: errorMessages,
-        });
-      }
-      
-      console.error("Validation Middleware Error:", error);
-      return res.status(500).json({ success: false, message: 'Internal Server Error', error: String(error) });
+      next(error);
     }
   };
 };
