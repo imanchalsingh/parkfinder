@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
+import OfflineFallback from "./OfflineFallback";
 
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -510,6 +511,16 @@ const DashboardPage: React.FC = () => {
   }
 
   if (error) {
+    if (typeof window !== "undefined" && !navigator.onLine && !stats) {
+      return (
+        <OfflineFallback 
+          title="Dashboard Unavailable Offline" 
+          message="Please reconnect to the internet to view your latest parking analytics and history." 
+          onRetry={fetchDashboardData}
+        />
+      );
+    }
+
     return (
       <div
         className={`min-h-screen ${themeClasses.bg} flex items-center justify-center p-4 transition-colors duration-300`}

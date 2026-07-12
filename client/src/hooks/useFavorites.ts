@@ -65,12 +65,16 @@ export const useFavorites = () => {
           console.error("Failed to toggle favorite:", data.message);
           toast.error("Failed to update favorites");
         } else {
-          toast.success(prev.includes(locationId) ? "Removed from favorites" : "Added to favorites");
+          toast.success(favorites.includes(locationId) ? "Removed from favorites" : "Added to favorites");
         }
       } catch (err) {
-        console.error("Error toggling favorite:", err);
-        toast.error("Failed to update favorites");
-        fetchFavorites(); // Revert on failure
+        if (!navigator.onLine) {
+          toast("Action queued while offline. Will sync when connected.", { icon: "🔄" });
+        } else {
+          console.error("Error toggling favorite:", err);
+          toast.error("Failed to update favorites");
+          fetchFavorites(); // Revert on failure
+        }
       }
     },
     [token, user, navigate, fetchFavorites]

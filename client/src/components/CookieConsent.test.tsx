@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
 import '@testing-library/jest-dom/vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import CookieConsent from './CookieConsent';
 
@@ -28,15 +28,14 @@ describe('CookieConsent Component', () => {
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
-  test('shows after timeout if no consent is in localStorage', async () => {
+  test('shows after timeout if no consent is in localStorage', () => {
     renderComponent();
     
-    vi.advanceTimersByTime(1100);
-
-    await waitFor(() => {
-      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(1100);
     });
 
+    expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     expect(screen.getByText('Cookie Preferences')).toBeInTheDocument();
   });
 
@@ -44,45 +43,43 @@ describe('CookieConsent Component', () => {
     localStorage.setItem('cookieConsent', 'accepted');
     renderComponent();
 
-    vi.advanceTimersByTime(1100);
+    act(() => {
+      vi.advanceTimersByTime(1100);
+    });
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
-  test('clicking Accept All sets localStorage and hides banner', async () => {
+  test('clicking Accept All sets localStorage and hides banner', () => {
     renderComponent();
 
-    vi.advanceTimersByTime(1100);
-
-    await waitFor(() => {
-      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(1100);
     });
 
     const acceptButton = screen.getByRole('button', { name: /Accept All/i });
-    fireEvent.click(acceptButton);
+    
+    act(() => {
+      fireEvent.click(acceptButton);
+    });
 
     expect(localStorage.getItem('cookieConsent')).toBe('accepted');
-    
-    await waitFor(() => {
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-    });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 
-  test('clicking Decline Optional sets localStorage and hides banner', async () => {
+  test('clicking Decline Optional sets localStorage and hides banner', () => {
     renderComponent();
 
-    vi.advanceTimersByTime(1100);
-
-    await waitFor(() => {
-      expect(screen.getByRole('alertdialog')).toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(1100);
     });
 
     const declineButton = screen.getByRole('button', { name: /Decline Optional/i });
-    fireEvent.click(declineButton);
+    
+    act(() => {
+      fireEvent.click(declineButton);
+    });
 
     expect(localStorage.getItem('cookieConsent')).toBe('declined');
-    
-    await waitFor(() => {
-      expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
-    });
+    expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
   });
 });

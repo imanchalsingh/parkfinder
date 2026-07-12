@@ -55,8 +55,15 @@ export const BookingModal: React.FC<BookingModalProps> = ({
         toast.error(`${data.message || "Booking failed"}`);
       }
     } catch (err) {
-      console.error("Booking error:", err);
-      toast.error("Failed to book slot. Please try again.");
+      if (!navigator.onLine) {
+        toast("Booking queued while offline. Will sync when connected.", { icon: "🔄" });
+        onBookingSuccess();
+        onClose();
+        navigate("/bookings");
+      } else {
+        console.error("Booking error:", err);
+        toast.error("Failed to book slot. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
