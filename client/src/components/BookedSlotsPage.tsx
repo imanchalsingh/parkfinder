@@ -3,6 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import * as Icons from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import ExtendParkingModal from "./ExtendParkingModal";
+import OfflineFallback from "./OfflineFallback";
 import { toast } from "react-hot-toast";
 
 interface ParkingSlot {
@@ -407,6 +408,19 @@ const BookedSlotsPage: React.FC = () => {
   }
 
   if (error) {
+    if (typeof window !== "undefined" && !navigator.onLine && bookedSlots.length === 0) {
+      return (
+        <div className={`min-h-screen ${themeClasses.bg} flex items-center justify-center p-4`}>
+          <OfflineFallback 
+            title="Bookings Unavailable Offline" 
+            message="Please reconnect to the internet to view your booked parking slots." 
+            onRetry={fetchBookedSlots}
+            showQueueStatus={true}
+          />
+        </div>
+      );
+    }
+
     return (
       <div
         className={`min-h-screen ${themeClasses.bg} flex items-center justify-center p-4`}

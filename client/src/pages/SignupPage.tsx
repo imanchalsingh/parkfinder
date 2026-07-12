@@ -3,8 +3,6 @@ import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import {
-  Eye,
-  EyeOff,
   Mail,
   Lock,
   User,
@@ -17,6 +15,7 @@ import {
   FileText,
 } from "lucide-react";
 import PasswordStrengthMeter from "../components/PasswordStrengthMeter";
+import PasswordInput from "../components/PasswordInput";
 
 const THEME_CLASSES = {
   light: {
@@ -136,9 +135,6 @@ export default function SignupPage() {
   });
 
   const [msg, setMsg] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showAdminSecret, setShowAdminSecret] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const navigate = useNavigate();
@@ -480,36 +476,14 @@ export default function SignupPage() {
               >
                 Password
               </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Lock className={`w-5 h-5 ${themeClasses.iconColor}`} />
-                </div>
-                <input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  required
-                  className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
-                    errors.password
-                      ? "border-red-500/50"
-                      : themeClasses.inputBorder
-                  } rounded-xl ${themeClasses.text} ${themeClasses.placeholder} focus:outline-none focus:border-[#1B42CB] focus:ring-2 focus:ring-[#1B42CB]/20 transition-all duration-300`}
-                  placeholder="Create a strong password"
-                  value={form.password}
-                  onChange={(e) => handlePasswordChange(e.target.value)}
-                />
-                <button
-                  type="button"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:${themeClasses.text} transition-colors`}
-                >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                required
+                placeholder="Create a strong password"
+                value={form.password}
+                onChange={(e) => handlePasswordChange(e.target.value)}
+                error={!!errors.password}
+              />
 
               {/* Password Strength Meter */}
               <PasswordStrengthMeter password={form.password} />
@@ -532,38 +506,15 @@ export default function SignupPage() {
               >
                 Confirm Password
               </label>
-              <div className="relative">
-                <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                  <Lock className={`w-5 h-5 ${themeClasses.iconColor}`} />
-                </div>
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  required
-                  className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
-                    errors.confirmPassword
-                      ? "border-red-500/50"
-                      : themeClasses.inputBorder
-                  } rounded-xl ${themeClasses.text} ${themeClasses.placeholder} focus:outline-none focus:border-[#1B42CB] focus:ring-2 focus:ring-[#1B42CB]/20 transition-all duration-300`}
-                  placeholder="Confirm your password"
-                  value={form.confirmPassword}
-                  onChange={(e) =>
-                    handleInputChange("confirmPassword", e.target.value)
-                  }
-                />
-                <button
-                  type="button"
-                  aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:${themeClasses.text} transition-colors`}
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
+              <PasswordInput
+                id="confirmPassword"
+                required
+                placeholder="Confirm your password"
+                value={form.confirmPassword}
+                onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
+                error={!!errors.confirmPassword}
+                toggleLabel="confirm password"
+              />
               {errors.confirmPassword && (
                 <p
                   className={`mt-2 text-sm ${themeClasses.errorText} flex items-center gap-1`}
@@ -583,38 +534,17 @@ export default function SignupPage() {
                 >
                   Admin Secret Key
                 </label>
-                <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
-                    <Key className="w-5 h-5 text-[#FF2F6C]" />
-                  </div>
-                  <input
-                    id="adminSecret"
-                    type={showAdminSecret ? "text" : "password"}
-                    required={form.role === "admin"}
-                    className={`w-full pl-12 pr-12 py-3 ${themeClasses.inputBg} border ${
-                      errors.adminSecret
-                        ? "border-red-500/50"
-                        : "border-[#FF2F6C]/30"
-                    } rounded-xl ${themeClasses.text} ${themeClasses.placeholder} focus:outline-none focus:border-[#FF2F6C] focus:ring-2 focus:ring-[#FF2F6C]/20 transition-all duration-300`}
-                    placeholder="Enter admin secret key"
-                    value={form.adminSecret}
-                    onChange={(e) =>
-                      handleInputChange("adminSecret", e.target.value)
-                    }
-                  />
-                  <button
-                    type="button"
-                    aria-label={showAdminSecret ? "Hide admin secret key" : "Show admin secret key"}
-                    onClick={() => setShowAdminSecret(!showAdminSecret)}
-                    className={`absolute right-4 top-1/2 transform -translate-y-1/2 ${themeClasses.textMuted} hover:text-[#FF2F6C] transition-colors`}
-                  >
-                    {showAdminSecret ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
-                  </button>
-                </div>
+                <PasswordInput
+                  id="adminSecret"
+                  required={form.role === "admin"}
+                  placeholder="Enter admin secret key"
+                  value={form.adminSecret}
+                  onChange={(e) => handleInputChange("adminSecret", e.target.value)}
+                  error={!!errors.adminSecret}
+                  icon={<Key className="w-5 h-5 text-[#FF2F6C]" />}
+                  className="!border-[#FF2F6C]/30 focus:!border-[#FF2F6C] focus:!ring-[#FF2F6C]/20"
+                  toggleLabel="admin secret key"
+                />
                 {errors.adminSecret && (
                   <p
                     className={`mt-2 text-sm ${themeClasses.errorText} flex items-center gap-1`}

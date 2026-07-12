@@ -24,9 +24,9 @@ describe("Swagger Documentation Tests", () => {
     expect(Object.keys(swaggerDocs.paths).length).toBeGreaterThan(0);
     
     // Check for specific endpoints we annotated
-    expect(swaggerDocs.paths).toHaveProperty("/api/auth/login");
+    expect(swaggerDocs.paths).toHaveProperty("/api/auth/login/verify-2fa");
     expect(swaggerDocs.paths).toHaveProperty("/api/auth/2fa/setup");
-    expect(swaggerDocs.paths).toHaveProperty("/api/admin/slots");
+    expect(swaggerDocs.paths).toHaveProperty("/api/admin/slots/{id}");
     expect(swaggerDocs.paths).toHaveProperty("/api/bookings/my-bookings");
   });
 

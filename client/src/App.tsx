@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import SessionTimeout from "./components/SessionTimeout";
 import CookieConsent from "./components/CookieConsent";
 import BackToTop from "./components/BackToTop";
+import PWAWidgets from "./components/PWAWidgets";
 
 // Lazy loaded components (route-level)
 const HomePage = React.lazy(() => import("./components/HomePage"));
@@ -88,6 +89,7 @@ function App() {
       <CookieConsent />
       <Navbar />
       <BackToTop />
+      <PWAWidgets />
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HomePage />} />

@@ -1,7 +1,16 @@
 import express from "express";
 
 import { authMiddleware } from "../middleware/auth.js";
-import { cancelBooking, createBooking, deleteBooking, getAllBookings, getMyBookings, updateBookingStatus, downloadReceipt } from "../controllers/booking.controller.js";
+import {
+  cancelBooking,
+  createBooking,
+  deleteBooking,
+  getAllBookings,
+  getMyBookings,
+  updateBookingStatus,
+  downloadReceipt,
+  extendBooking,
+} from "../controllers/booking.controller.js";
 import { validateRequest } from "../middleware/validate.js";
 import { createBookingSchema, updateBookingStatusSchema, cancelBookingSchema } from "../validators/booking.validator.js";
 
@@ -30,12 +39,6 @@ router.delete("/cancel/:id", authMiddleware, validateRequest(cancelBookingSchema
 
 // Extend booking duration (user)
 router.patch("/:id/extend", authMiddleware, extendBooking);
-
-// Download PDF receipt (user/admin)
-router.get("/:id/receipt", authMiddleware, downloadReceipt);
-
-// Download PDF receipt (user/admin)
-router.get("/:id/receipt", authMiddleware, downloadReceipt);
 
 // Download PDF receipt (user/admin)
 router.get("/:id/receipt", authMiddleware, downloadReceipt);

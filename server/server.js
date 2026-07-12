@@ -12,12 +12,13 @@ import dashboardRoute from "./routes/dashboardRoute.js";
 import predictionRoute from "./routes/predictionRoute.js";
 import favoritesRoute from "./routes/favoritesRoute.js";
 import analyticsRoutes from "./routes/analyticsRoutes.js";
+import adminCacheRoute from "./routes/adminCacheRoute.js";
 import contactRoute from "./routes/contactRoute.js";
 import cors from "cors";
 import dotenv from "dotenv";
+import peakHoursRoute from "./routes/peakHoursRoute.js";
 import floorVisualizationRoute from "./routes/floorVisualizationRoute.js";
 import reviewRoute from "./routes/reviewRoute.js";
-import { connectRedis } from "./utils/cache.js";
 import "./jobs/bookingExpiry.js";
 import { setupLogger } from "./utils/logger.js";
 import { requestIdMiddleware } from "./middleware/requestId.js";
@@ -26,16 +27,14 @@ import errorHandler from "./middleware/errorHandler.js";
 // Initialize global logger override
 setupLogger();
 
+import { initializeEventSubscribers } from "./events/index.js";
+initializeEventSubscribers();
+
 dotenv.config({ path: ".env" });
 
-// Connect to Redis
-if (process.env.NODE_ENV !== 'test') {
-  connectRedis();
-}
-
-// Validate critical environment variables at startup
-const requiredEnvVars = ["JWT_SECRET", "ADMIN_SECRET"];
-const missingEnvVars = requiredEnvVars.filter((envVar) => !process.env[envVar]);
+const missingEnvVars = [];
+if (!process.env.JWT_SECRET) missingEnvVars.push("JWT_SECRET");
+if (!process.env.ADMIN_SECRET) missingEnvVars.push("ADMIN_SECRET");
 
 if (missingEnvVars.length > 0) {
   console.error(
@@ -56,7 +55,7 @@ app.use(helmet({
 }));
 
 const PORT = process.env.PORT || 5000;
-app.use(corsMiddleware);
+app.use(cors());
 // Middleware to parse JSON body (if needed later)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -93,6 +92,8 @@ app.use("/api/admin/slots", adminSlotsRouter);
 app.use("/api/admin/users", userManage);
 // use admin analytics routes.
 app.use("/api/admin/analytics", analyticsRoutes);
+// use admin cache routes.
+app.use("/api/admin/cache", adminCacheRoute);
 // use parkingLog --- entry exit of vehicle
 app.use("/api", parkingLogRoute);
 // use favorites route
@@ -116,8 +117,6 @@ app.use("/api/predictions", predictionRoute);
 app.get("/", (req, res) => {
   res.send("Welcome to the Parking Slot API");
 });
-
-import { errorHandler } from "./middleware/errorHandler.js";
 
 // Global Error Handler
 app.use(errorHandler);

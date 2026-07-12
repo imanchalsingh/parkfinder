@@ -1,5 +1,7 @@
 import Parking from "../models/Parking.js";
 import { clearCache } from "../utils/cache.js";
+import eventBus from "../events/eventBus.js";
+import { EVENTS } from "../events/constants.js";
 
 export const allSlots = async (req, res) => {
   try {
@@ -29,6 +31,7 @@ export const newSlot = async (req, res) => {
   try {
     const slot = await Parking.create(req.body);
     await clearCache(); // Invalidate all cached data
+    eventBus.emit(EVENTS.PARKING_LOT_ADDED, { parking: slot });
     res.json({ success: true, data: slot });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });

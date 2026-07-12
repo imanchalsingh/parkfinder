@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { sendPasswordResetEmail, send2FAEmail } from "../utils/email.js";
+import eventBus from "../events/eventBus.js";
+import { EVENTS } from "../events/constants.js";
 
 export const signup = async (req, res) => {
   try {
@@ -30,6 +32,8 @@ export const signup = async (req, res) => {
     });
 
     await user.save();
+
+    eventBus.emit(EVENTS.USER_REGISTERED, { user });
 
     const token = jwt.sign(
       { id: user._id, role: user.role },
@@ -82,7 +86,7 @@ export const signup = async (req, res) => {
       user.emailVerificationOTPExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
       await user.save();
 
-      await send2FAEmail({ to: user.email, otp });
+      eventBus.emit(EVENTS.TWO_FACTOR_REQUESTED, { email: user.email, otp });
 
       const tempToken = jwt.sign(
         { id: user._id, role: user.role, isEmail2FA: true },
@@ -106,7 +110,7 @@ export const signup = async (req, res) => {
       user.emailVerificationOTPExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
       await user.save();
 
-      await send2FAEmail({ to: user.email, otp });
+      eventBus.emit(EVENTS.TWO_FACTOR_REQUESTED, { email: user.email, otp });
 
       const tempToken = jwt.sign(
         { id: user._id, role: user.role, isEmail2FA: true },
@@ -329,10 +333,7 @@ export const forgotPassword = async (req, res) => {
       user.resetTokenExpiry = Date.now() + 30 * 60 * 1000;
       await user.save();
 
-      await sendPasswordResetEmail({
-        to: user.email,
-        resetToken,
-      });
+      eventBus.emit(EVENTS.PASSWORD_RESET_REQUESTED, { email: user.email, resetToken });
     }
 
     return res.status(200).json({
