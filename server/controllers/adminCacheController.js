@@ -9,3 +9,13 @@ export const getStats = (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+
+export const flushCache = (req, res) => {
+  try {
+    const count = cacheManager.flushAll();
+    res.json({ success: true, message: `Successfully flushed ${count} cached items.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
