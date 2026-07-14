@@ -5,6 +5,7 @@ import crypto from "crypto";
 import { sendPasswordResetEmail, send2FAEmail } from "../utils/email.js";
 import eventBus from "../events/eventBus.js";
 import { EVENTS } from "../events/constants.js";
+import { generateToken } from "../utils/jwt.js";
 
 export const signup = async (req, res) => {
   try {
@@ -35,11 +36,7 @@ export const signup = async (req, res) => {
 
     eventBus.emit(EVENTS.USER_REGISTERED, { user });
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const token = generateToken(user._id, user.role);
 
     res.json({
       success: true,
@@ -88,11 +85,7 @@ export const signup = async (req, res) => {
 
       eventBus.emit(EVENTS.TWO_FACTOR_REQUESTED, { email: user.email, otp });
 
-      const tempToken = jwt.sign(
-        { id: user._id, role: user.role, isEmail2FA: true },
-        process.env.JWT_SECRET,
-        { expiresIn: "10m" }
-      );
+      const tempToken = generateToken(user._id, user.role, { isEmail2FA: true, expiresIn: "10m" });
 
       return res.json({
         success: true,
@@ -131,11 +124,7 @@ export const signup = async (req, res) => {
       user.isTwoFactorEnabled
     ) {
       // Return a temporary short-lived token instead of the full access token
-      const tempToken = jwt.sign(
-        { id: user._id, role: user.role, isTemp: true },
-        process.env.JWT_SECRET,
-        { expiresIn: "5m" } // valid for 5 minutes
-      );
+      const tempToken = generateToken(user._id, user.role, { isTemp: true, expiresIn: "5m" });
 
       return res.json({
         success: true,
