@@ -9,6 +9,16 @@ import { EVENTS } from "../events/constants.js";
 export const signup = async (req, res) => {
   try {
     const { name, email, password, role, adminSecret } = req.body;
+    
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ success: false, message: "Name is required and cannot be empty." });
+    }
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      return res.status(400).json({ success: false, message: "Email is required and cannot be empty." });
+    }
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ success: false, message: "Password is required and cannot be empty." });
+    }
 
     const exists = await User.findOne({ email });
     if (exists)
