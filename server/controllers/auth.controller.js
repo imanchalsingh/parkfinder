@@ -60,6 +60,16 @@ export const signup = async (req, res) => {
   export const login = async (req, res) => {
   try {
     const { email, password, deviceId } = req.body;
+    
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      return res.status(400).json({ success: false, message: "Email is required and cannot be empty." });
+    }
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ success: false, message: "Password is required and cannot be empty." });
+    }
+    if (deviceId !== undefined && (typeof deviceId !== 'string' || deviceId.trim() === '')) {
+      return res.status(400).json({ success: false, message: "Device ID must be a valid string if provided." });
+    }
 
     const user = await User.findOne({ email });
 
