@@ -322,6 +322,11 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
+    // Validate required field at the controller level
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      return res.status(400).json({ success: false, message: "Email is required and cannot be empty." });
+    }
+
     const GENERIC_RESET_MESSAGE =
       "If an account with that email exists, a password reset link has been sent.";
 
