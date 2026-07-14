@@ -2,19 +2,12 @@ import express from "express";
 import { authMiddleware, adminMiddleware } from "../middleware/auth.js";
 import { cacheStats } from "../utils/cache/CacheStats.js";
 import { cacheManager } from "../utils/cache/CacheManager.js";
-
+import { getStats } from "../controllers/adminCacheController.js";
 const router = express.Router();
 
 // GET /api/admin/cache/stats
 // View cache performance metrics
-router.get("/stats", authMiddleware, adminMiddleware, (req, res) => {
-  try {
-    const metrics = cacheManager.getMetrics();
-    res.json({ success: true, data: metrics });
-  } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
+router.get("/stats", authMiddleware, adminMiddleware,getStats);
 
 // POST /api/admin/cache/flush
 // Manually flush the entire cache
