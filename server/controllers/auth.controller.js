@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { sendPasswordResetEmail, send2FAEmail } from "../utils/email.js";
 import eventBus from "../events/eventBus.js";
 import { EVENTS } from "../events/constants.js";
-import { sendAuthError } from "../utils/authErrorHelper.js";
+import { sendAuthSuccess, sendAuth2FARequired, sendAuthMessage } from "../utils/authResponseHelper.js";
 
 export const signup = async (req, res) => {
   try {
@@ -45,17 +45,7 @@ export const signup = async (req, res) => {
 
     const token = generateToken(user._id, user.role);
 
-    res.json({
-      success: true,
-      message: "Account created successfully! Welcome!",
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    return sendAuthSuccess(res, user, token, "Account created successfully! Welcome!");
   } catch (err) {
     return sendAuthError(res, 500, err.message);
   }
@@ -100,11 +90,7 @@ export const login = async (req, res) => {
 
       const tempToken = generateToken(user._id, user.role, { isEmail2FA: true, expiresIn: "10m" });
 
-      return res.json({
-        success: true,
-        requiresEmail2FA: true,
-        tempToken,
-      });
+      return sendAuth2FARequired(res, tempToken, true);
     }
 
     // Check if device is recognized
@@ -124,11 +110,7 @@ export const login = async (req, res) => {
         { expiresIn: "10m" }
       );
 
-      return res.json({
-        success: true,
-        requiresEmail2FA: true,
-        tempToken,
-      });
+      return sendAuth2FARequired(res, tempToken, true);
     }
 
     // Check if user is admin or manager and has 2FA enabled
@@ -139,11 +121,7 @@ export const login = async (req, res) => {
       // Return a temporary short-lived token instead of the full access token
       const tempToken = generateToken(user._id, user.role, { isTemp: true, expiresIn: "5m" });
 
-      return res.json({
-        success: true,
-        requires2FA: true,
-        tempToken,
-      });
+      return sendAuth2FARequired(res, tempToken, false);
     }
 
     const token = jwt.sign(
@@ -154,16 +132,7 @@ export const login = async (req, res) => {
       }
     );
 
-    res.json({
-      success: true,
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    return sendAuthSuccess(res, user, token);
   } catch (err) {
     return sendAuthError(res, 500, err.message);
   }
@@ -218,16 +187,7 @@ export const verify2FALogin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({
-      success: true,
-      token: finalToken,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    return sendAuthSuccess(res, user, finalToken);
   } catch (err) {
     return sendAuthError(res, 500, err.message);
   }
@@ -284,11 +244,7 @@ export const verifyEmail2FA = async (req, res) => {
         { expiresIn: "5m" }
       );
 
-      return res.json({
-        success: true,
-        requires2FA: true,
-        tempToken: totpTempToken,
-      });
+      return sendAuth2FARequired(res, totpTempToken, false);
     }
 
     // Generate real access token
@@ -298,26 +254,14 @@ export const verifyEmail2FA = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({
-      success: true,
-      token: finalToken,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      },
-    });
+    return sendAuthSuccess(res, user, finalToken);
   } catch (err) {
     return sendAuthError(res, 500, err.message);
   }
 };
 
 export const verify = async (req, res) => {
-  res.json({
-    success: true,
-    user: req.user,
-  });
+  return sendAuthSuccess(res, req.user, null);
 };
 
 export const forgotPassword = async (req, res) => {
@@ -343,10 +287,7 @@ export const forgotPassword = async (req, res) => {
       eventBus.emit(EVENTS.PASSWORD_RESET_REQUESTED, { email: user.email, resetToken });
     }
 
-    return res.status(200).json({
-      success: true,
-      message: GENERIC_RESET_MESSAGE,
-    });
+    return sendAuthMessage(res, GENERIC_RESET_MESSAGE);
   } catch (err) {
     return sendAuthError(res, 500, err.message || "Failed to process password reset request");
   }
@@ -378,7 +319,7 @@ export const resetPassword = async (req, res) => {
     user.resetTokenExpiry = undefined;
     await user.save();
 
-    res.json({ success: true, message: "Password reset successful" });
+    return sendAuthMessage(res, "Password reset successful");
   } catch (err) {
     return sendAuthError(res, 500, err.message || "Failed to reset password");
   }
