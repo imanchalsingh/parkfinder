@@ -10,6 +10,16 @@ import { sendAuthError } from "../utils/authErrorHelper.js";
 export const signup = async (req, res) => {
   try {
     const { name, email, password, role, adminSecret } = req.body;
+    
+    if (!name || typeof name !== 'string' || name.trim() === '') {
+      return res.status(400).json({ success: false, message: "Name is required and cannot be empty." });
+    }
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      return res.status(400).json({ success: false, message: "Email is required and cannot be empty." });
+    }
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ success: false, message: "Password is required and cannot be empty." });
+    }
 
     const exists = await User.findOne({ email });
     if (exists)
@@ -33,11 +43,7 @@ export const signup = async (req, res) => {
 
     eventBus.emit(EVENTS.USER_REGISTERED, { user });
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const token = generateToken(user._id, user.role);
 
     res.json({
       success: true,
@@ -58,6 +64,16 @@ export const signup = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password, deviceId } = req.body;
+    
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      return res.status(400).json({ success: false, message: "Email is required and cannot be empty." });
+    }
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ success: false, message: "Password is required and cannot be empty." });
+    }
+    if (deviceId !== undefined && (typeof deviceId !== 'string' || deviceId.trim() === '')) {
+      return res.status(400).json({ success: false, message: "Device ID must be a valid string if provided." });
+    }
 
     const user = await User.findOne({ email });
 
@@ -82,11 +98,7 @@ export const login = async (req, res) => {
 
       eventBus.emit(EVENTS.TWO_FACTOR_REQUESTED, { email: user.email, otp });
 
-      const tempToken = jwt.sign(
-        { id: user._id, role: user.role, isEmail2FA: true },
-        process.env.JWT_SECRET,
-        { expiresIn: "10m" }
-      );
+      const tempToken = generateToken(user._id, user.role, { isEmail2FA: true, expiresIn: "10m" });
 
       return res.json({
         success: true,
@@ -125,11 +137,7 @@ export const login = async (req, res) => {
       user.isTwoFactorEnabled
     ) {
       // Return a temporary short-lived token instead of the full access token
-      const tempToken = jwt.sign(
-        { id: user._id, role: user.role, isTemp: true },
-        process.env.JWT_SECRET,
-        { expiresIn: "5m" } // valid for 5 minutes
-      );
+      const tempToken = generateToken(user._id, user.role, { isTemp: true, expiresIn: "5m" });
 
       return res.json({
         success: true,
@@ -278,7 +286,7 @@ export const verifyEmail2FA = async (req, res) => {
 
       return res.json({
         success: true,
-        requires2FA: true, // Needs authenticator app
+        requires2FA: true,
         tempToken: totpTempToken,
       });
     }
@@ -316,6 +324,11 @@ export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
 
+    // Validate required field at the controller level
+    if (!email || typeof email !== 'string' || email.trim() === '') {
+      return res.status(400).json({ success: false, message: "Email is required and cannot be empty." });
+    }
+
     const GENERIC_RESET_MESSAGE =
       "If an account with that email exists, a password reset link has been sent.";
 
@@ -342,6 +355,14 @@ export const forgotPassword = async (req, res) => {
 export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
+
+    // Validate required fields at the controller level
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      return res.status(400).json({ success: false, message: "Reset token is required and cannot be empty." });
+    }
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ success: false, message: "New password is required and cannot be empty." });
+    }
 
     const user = await User.findOne({
       resetToken: token,
