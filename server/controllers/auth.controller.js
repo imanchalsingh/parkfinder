@@ -5,7 +5,7 @@ import crypto from "crypto";
 import { sendPasswordResetEmail, send2FAEmail } from "../utils/email.js";
 import eventBus from "../events/eventBus.js";
 import { EVENTS } from "../events/constants.js";
-import { generateToken } from "../utils/jwt.js";
+import { sendAuthError } from "../utils/authErrorHelper.js";
 
 export const signup = async (req, res) => {
   try {
@@ -23,15 +23,12 @@ export const signup = async (req, res) => {
 
     const exists = await User.findOne({ email });
     if (exists)
-      return res.json({ success: false, message: "Email already exists" });
+      return sendAuthError(res, 200, "Email already exists");
 
     // Prevent random users from creating admin
     if (role === "admin") {
       if (adminSecret !== process.env.ADMIN_SECRET) {
-        return res.json({
-          success: false,
-          message: "Invalid Admin Secret Key",
-        });
+        return sendAuthError(res, 200, "Invalid Admin Secret Key");
       }
     }
 
@@ -60,11 +57,11 @@ export const signup = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return sendAuthError(res, 500, err.message);
   }
 };
 
-  export const login = async (req, res) => {
+export const login = async (req, res) => {
   try {
     const { email, password, deviceId } = req.body;
     
@@ -81,17 +78,13 @@ export const signup = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return res
-        .status(401)
-        .json({ success: false, message: INVALID_CREDENTIALS_MESSAGE });
+      return sendAuthError(res, 401, INVALID_CREDENTIALS_MESSAGE);
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: INVALID_CREDENTIALS_MESSAGE });
+      return sendAuthError(res, 401, INVALID_CREDENTIALS_MESSAGE);
     }
 
     // Check if device is recognized
@@ -118,7 +111,7 @@ export const signup = async (req, res) => {
     if (deviceId && !user.trustedDevices.includes(deviceId)) {
       // Unrecognized device - Trigger Email 2FA
       const otp = crypto.randomInt(100000, 999999).toString();
-      
+
       user.emailVerificationOTP = await bcrypt.hash(otp, 10);
       user.emailVerificationOTPExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes
       await user.save();
@@ -172,7 +165,7 @@ export const signup = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return sendAuthError(res, 500, err.message);
   }
 };
 
@@ -182,12 +175,8 @@ export const verify2FALogin = async (req, res) => {
   try {
     const { tempToken, token } = req.body;
 
-    // Strict input validation at the controller level
-    if (!tempToken || typeof tempToken !== 'string' || tempToken.trim() === '') {
-      return res.status(400).json({ success: false, message: "Temporary token is required and cannot be empty." });
-    }
-    if (!token || typeof token !== 'string' || token.trim() === '') {
-      return res.status(400).json({ success: false, message: "2FA token is required and cannot be empty." });
+    if (!tempToken || !token) {
+      return sendAuthError(res, 400, "Missing tokens");
     }
 
     // Verify temp token
@@ -195,20 +184,20 @@ export const verify2FALogin = async (req, res) => {
     try {
       decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
     } catch (err) {
-      return res.status(401).json({ success: false, message: "Temporary token expired or invalid" });
+      return sendAuthError(res, 401, "Temporary token expired or invalid");
     }
 
     if (!decoded.isTemp) {
-      return res.status(400).json({ success: false, message: "Invalid temporary token" });
+      return sendAuthError(res, 400, "Invalid temporary token");
     }
 
     const user = await User.findById(decoded.id).select("+twoFactorSecret");
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return sendAuthError(res, 404, "User not found");
     }
 
     if (!user.isTwoFactorEnabled || !user.twoFactorSecret) {
-      return res.status(400).json({ success: false, message: "2FA is not enabled for this user" });
+      return sendAuthError(res, 400, "2FA is not enabled for this user");
     }
 
     // Verify TOTP token
@@ -219,7 +208,7 @@ export const verify2FALogin = async (req, res) => {
     });
 
     if (!verified) {
-      return res.status(400).json({ success: false, message: "Invalid 2FA token" });
+      return sendAuthError(res, 400, "Invalid 2FA token");
     }
 
     // Generate real access token
@@ -240,7 +229,7 @@ export const verify2FALogin = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return sendAuthError(res, 500, err.message);
   }
 };
 
@@ -248,40 +237,33 @@ export const verifyEmail2FA = async (req, res) => {
   try {
     const { tempToken, otp, deviceId } = req.body;
 
-    // Strict input validation at the controller level
-    if (!tempToken || typeof tempToken !== 'string' || tempToken.trim() === '') {
-      return res.status(400).json({ success: false, message: "Temporary token is required and cannot be empty." });
-    }
-    if (!otp || String(otp).trim() === '') {
-      return res.status(400).json({ success: false, message: "OTP is required and cannot be empty." });
-    }
-    if (!deviceId || typeof deviceId !== 'string' || deviceId.trim() === '') {
-      return res.status(400).json({ success: false, message: "Device ID is required and cannot be empty." });
+    if (!tempToken || !otp || !deviceId) {
+      return sendAuthError(res, 400, "Missing required fields");
     }
 
     let decoded;
     try {
       decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
     } catch (err) {
-      return res.status(401).json({ success: false, message: "Temporary token expired or invalid" });
+      return sendAuthError(res, 401, "Temporary token expired or invalid");
     }
 
     if (!decoded.isEmail2FA) {
-      return res.status(400).json({ success: false, message: "Invalid token type" });
+      return sendAuthError(res, 400, "Invalid token type");
     }
 
     const user = await User.findById(decoded.id).select("+emailVerificationOTP");
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
+      return sendAuthError(res, 404, "User not found");
     }
 
     if (!user.emailVerificationOTP || !user.emailVerificationOTPExpiry || user.emailVerificationOTPExpiry < Date.now()) {
-      return res.status(400).json({ success: false, message: "OTP has expired or is invalid. Please login again." });
+      return sendAuthError(res, 400, "OTP has expired or is invalid. Please login again.");
     }
 
     const isMatch = await bcrypt.compare(otp.toString(), user.emailVerificationOTP);
     if (!isMatch) {
-      return res.status(400).json({ success: false, message: "Incorrect verification code" });
+      return sendAuthError(res, 400, "Incorrect verification code");
     }
 
     // Mark device as trusted
@@ -327,7 +309,7 @@ export const verifyEmail2FA = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    return sendAuthError(res, 500, err.message);
   }
 };
 
@@ -366,12 +348,10 @@ export const forgotPassword = async (req, res) => {
       message: GENERIC_RESET_MESSAGE,
     });
   } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: err.message || "Failed to process password reset request",
-    });
+    return sendAuthError(res, 500, err.message || "Failed to process password reset request");
   }
 };
+
 export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
@@ -390,9 +370,7 @@ export const resetPassword = async (req, res) => {
     });
 
     if (!user) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid or expired reset token" });
+      return sendAuthError(res, 400, "Invalid or expired reset token");
     }
 
     user.password = password;
@@ -402,11 +380,6 @@ export const resetPassword = async (req, res) => {
 
     res.json({ success: true, message: "Password reset successful" });
   } catch (err) {
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: err.message || "Failed to reset password",
-      });
+    return sendAuthError(res, 500, err.message || "Failed to reset password");
   }
 };
