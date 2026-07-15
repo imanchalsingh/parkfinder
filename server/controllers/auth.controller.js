@@ -371,6 +371,14 @@ export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
 
+    // Validate required fields at the controller level
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      return res.status(400).json({ success: false, message: "Reset token is required and cannot be empty." });
+    }
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      return res.status(400).json({ success: false, message: "New password is required and cannot be empty." });
+    }
+
     const user = await User.findOne({
       resetToken: token,
       resetTokenExpiry: { $gt: Date.now() },
@@ -396,4 +404,4 @@ export const resetPassword = async (req, res) => {
         message: err.message || "Failed to reset password",
       });
   }
-}
+};
