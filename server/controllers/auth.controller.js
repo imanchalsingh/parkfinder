@@ -255,8 +255,15 @@ export const verifyEmail2FA = async (req, res) => {
   try {
     const { tempToken, otp, deviceId } = req.body;
 
-    if (!tempToken || !otp || !deviceId) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+    // Strict input validation at the controller level
+    if (!tempToken || typeof tempToken !== 'string' || tempToken.trim() === '') {
+      return res.status(400).json({ success: false, message: "Temporary token is required and cannot be empty." });
+    }
+    if (!otp || String(otp).trim() === '') {
+      return res.status(400).json({ success: false, message: "OTP is required and cannot be empty." });
+    }
+    if (!deviceId || typeof deviceId !== 'string' || deviceId.trim() === '') {
+      return res.status(400).json({ success: false, message: "Device ID is required and cannot be empty." });
     }
 
     let decoded;
@@ -301,10 +308,10 @@ export const verifyEmail2FA = async (req, res) => {
         process.env.JWT_SECRET,
         { expiresIn: "5m" }
       );
-      
+
       return res.json({
         success: true,
-        requires2FA: true, // Needs authenticator app
+        requires2FA: true,
         tempToken: totpTempToken,
       });
     }
