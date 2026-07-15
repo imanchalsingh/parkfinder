@@ -193,8 +193,12 @@ export const verify2FALogin = async (req, res) => {
   try {
     const { tempToken, token } = req.body;
 
-    if (!tempToken || !token) {
-      return res.status(400).json({ success: false, message: "Missing tokens" });
+    // Strict input validation at the controller level
+    if (!tempToken || typeof tempToken !== 'string' || tempToken.trim() === '') {
+      return res.status(400).json({ success: false, message: "Temporary token is required and cannot be empty." });
+    }
+    if (!token || typeof token !== 'string' || token.trim() === '') {
+      return res.status(400).json({ success: false, message: "2FA token is required and cannot be empty." });
     }
 
     // Verify temp token
